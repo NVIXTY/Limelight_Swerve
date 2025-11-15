@@ -3,32 +3,37 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.2604440789473683,
-        "y": 7.123190789473683
+        "x": 1.309243119380694,
+        "y": 5.565873600441298
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.4292381307123774,
-        "y": 6.938776668298672
+        "x": 5.1128348410542985,
+        "y": 3.5833064868276443
       },
       "isLocked": false,
-      "linkedName": "step 2 3pblue"
+      "linkedName": "shoot left blue"
     },
     {
       "anchor": {
-        "x": 3.694736842105263,
-        "y": 5.064144736842105
+        "x": 8.094028352636311,
+        "y": 2.4231375833055786
       },
       "prevControl": {
-        "x": 2.4308270295213696,
-        "y": 5.350599176641705
+        "x": 4.40792208954722,
+        "y": 1.0279977626144878
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.9498997995991988,
+      "rotationDegrees": -149.32989622740376
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,13 +47,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -59.99999999999999
+    "rotation": 180.0
   },
   "reversed": false,
-  "folder": "3pblue",
+  "folder": "Random Creshendo Path",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 125.00000000000001
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }
