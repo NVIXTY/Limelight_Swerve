@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentric;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -18,7 +19,7 @@ import frc.robot.LimelightHelpers;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
-public class AlignToReefTagRelative extends Command {
+public class AutoAlignTagRelative extends Command {
   private PIDController xController, yController, rotController;
   private boolean isRightScore;
   private Timer dontSeeTagTimer, stopTimer;
@@ -31,12 +32,11 @@ private double rotValue = 1;
 private double xSpeed = 1;
 
 
-  public AlignToReefTagRelative(boolean isRightScore, CommandSwerveDrivetrain drivebase) {
+  public AutoAlignTagRelative(boolean isRightScore, FieldCentric drive) {
     xController = new PIDController(Constants.AprilConstants.X_REEF_ALIGNMENT_P, 0.0, 0);  // Vertical movement
     yController = new PIDController(Constants.AprilConstants.Y_REEF_ALIGNMENT_P, 0.0, 0);  // Horitontal movement
     rotController = new PIDController(Constants.AprilConstants.ROT_REEF_ALIGNMENT_P, 0, 0);  // Rotation
     this.isRightScore = isRightScore;
-    this.drivebase = drivebase;
     addRequirements(drivebase);
   }
 
@@ -56,7 +56,7 @@ private double xSpeed = 1;
     yController.setSetpoint(isRightScore ? Constants.AprilConstants.Y_SETPOINT_REEF_ALIGNMENT : -Constants.AprilConstants.Y_SETPOINT_REEF_ALIGNMENT);
     yController.setTolerance(Constants.AprilConstants.Y_TOLERANCE_REEF_ALIGNMENT);
 
-    tagID = LimelightHelpers.getFiducialID("");
+    tagID = LimelightHelpers.getFiducialID("limelight");
   }
 
   @Override
