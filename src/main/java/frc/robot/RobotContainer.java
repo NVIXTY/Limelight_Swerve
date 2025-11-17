@@ -65,8 +65,8 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         ));
 
-        joystick.rightBumper().onTrue(new AutoAlignTagRelative(true, drive));
-        joystick.leftBumper().onTrue(new AutoAlignTagRelative(false, drive));
+        joystick.rightBumper().onTrue(new AutoAlignTagRelative(true, drivetrain));
+        joystick.leftBumper().onTrue(new AutoAlignTagRelative(false, drivetrain));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
