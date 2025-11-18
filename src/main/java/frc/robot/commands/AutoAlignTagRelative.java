@@ -37,7 +37,7 @@ private double xSpeed = 1;
     yController = new PIDController(Constants.AprilConstants.Y_REEF_ALIGNMENT_P, 0.0, 0);  // Horitontal movement
     rotController = new PIDController(Constants.AprilConstants.ROT_REEF_ALIGNMENT_P, 0, 0);  // Rotation
     this.isRightScore = isRightScore;
-    this.drivebase = drivebase;
+    this.drivebase = drivetrain;
     addRequirements(drivebase);
   }
 
