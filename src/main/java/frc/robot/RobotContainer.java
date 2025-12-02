@@ -6,13 +6,17 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.FollowPathCommand;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -20,8 +24,10 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.generated.TunerConstants;
-import frc.robot.commands.AutoAlignTagRelative;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.LimelightGlobalPose.CommandSwerveDrivetrain;
+import frc.robot.commands.AutoAlign.DriveToPose;
+
+
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -33,6 +39,8 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+    private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric()
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -40,10 +48,19 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
+    DriveToPose m_driveToPose = new DriveToPose(drivetrain);
+
+    /* Path follower */
+    private final SendableChooser<Command> autoChooser;
+
     public RobotContainer() {
-     NamedCommands.registerCommand("AutoAlignLeft", new AutoAlignTagRelative(true, drivetrain));
-     NamedCommands.registerCommand("AutoAlignRight", new AutoAlignTagRelative(false, drivetrain));
+        autoChooser = AutoBuilder.buildAutoChooser("Tests");
+        SmartDashboard.putData("Auto Mode", autoChooser);
+
         configureBindings();
+
+        // Warmup PathPlanner to avoid Java pauses
+        FollowPathCommand.warmupCommand().schedule();
     }
 
     private void configureBindings() {
@@ -58,6 +75,9 @@ public class RobotContainer {
             )
         );
 
+        joystick.povUp().onTrue(Commands.runOnce(()->SignalLogger.start()));
+        joystick.povDown().onTrue(Commands.runOnce(()->SignalLogger.stop()));
+
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
@@ -70,8 +90,6 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         ));
 
-        joystick.rightBumper().onTrue(new AutoAlignTagRelative(true, drivetrain));
-        joystick.leftBumper().onTrue(new AutoAlignTagRelative(false, drivetrain));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
@@ -84,9 +102,12 @@ public class RobotContainer {
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        joystick.rightBumper().whileTrue(m_driveToPose.driveToPose(new Pose2d(2.08,4.06,Rotation2d.fromDegrees(0)))); //tag18
     }
 
     public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
+        /* eturnun the path selected from the auto chooser */
+        return autoChooser.getSelected();
     }
 }
