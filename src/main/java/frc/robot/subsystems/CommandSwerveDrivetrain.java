@@ -1,4 +1,4 @@
-package frc.robot.subsystems.LimelightGlobalPose;
+package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.LimelightHelpers;
 import frc.robot.Telemetry;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.subsystems.LimelightGlobalPose.Vision;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
