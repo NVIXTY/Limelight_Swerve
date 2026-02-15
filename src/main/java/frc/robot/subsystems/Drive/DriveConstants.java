@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class DriveConstants {
     public static final double maxSpeed = TunerConstants.kSpeedAt12Volts.in(Units.MetersPerSecond); // kSpeedAt12Volts desired top speed
-    public static final double maxAngularRate = Units.RotationsPerSecond.of(3).in(Units.RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    public static final double maxAngularRate = Units.RotationsPerSecond.of(1).in(Units.RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
     
     public static final Distance shooterSideOffset = Units.Inches.of(0);
 
