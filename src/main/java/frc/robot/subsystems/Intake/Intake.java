@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Intake extends SubsystemBase {
-    private final TalonFX motor;         // slapdown pivot
+    private final TalonFX motor;         // slapdown pivot (Falcon 500)
     private final TalonFX rollerMotor;   // intake roller (Falcon 500)
 
     private double deployedPositionRotations = IntakeConstants.DEPLOYED_POSITION_ROT;

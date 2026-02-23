@@ -22,8 +22,12 @@ public final class IntakeConstants {
     public static final double ROLLER_KI = 0.0;
     public static final double ROLLER_KD = 0.0;
 
+    // Roller velocity setpoints (RPS)
+    public static final double ROLLER_FORWARD_VELOCITY_RPS = 25.0;
+    public static final double ROLLER_REVERSE_VELOCITY_RPS = -15.0;
+
     // Safety / behavior
-    public static final double MANUAL_OUTPUT_LIMIT = 1.0; // clamp [-1, 1]
+    public static final double MANUAL_OUTPUT_LIMIT = 0.1;
 
     // Dashboard keys
     public static final String KEY_POS_ROT = "Intake/PositionRot";
@@ -35,3 +39,5 @@ public final class IntakeConstants {
     public static final String KEY_ROLLER_REV_RPS = "Intake/RollerReverseRPS";
     public static final String KEY_ROLLER_VEL_RPS = "Intake/RollerVelocityRPS";
 }
+
+// TODO - TUNE EVERY VALUE IN CONSTANTS
