@@ -4,13 +4,16 @@
 
 package frc.robot.subsystems.Intake;
 
+import frc.robot.util.LoggedTunableNumber;
+
 /** Add your docs here. */
 public class IntakeConstants {
     public static final int kPivotMotorId = 22;
 
-    public static final double kP = 200;
-    public static final double kI = 0;
-    public static final double kD = 0;
+
+    public static final LoggedTunableNumber kP = new LoggedTunableNumber("Tuning/Intake/Pivot/kP", 1,true);
+    public static final LoggedTunableNumber kI = new LoggedTunableNumber("Tuning/Intake/Pivot/kI", 0,true);
+    public static final LoggedTunableNumber kD = new LoggedTunableNumber("Tuning/Intake/Pivot/kD", 0,true);
 
     public static final double kCruiseVelocity = 500;
     public static final double kAcceleration = 800;
@@ -32,4 +35,20 @@ public class IntakeConstants {
     public static final int kRollerMotorId = 23;
     public static final double kRollerSupplyCurrentLimit = 35;
 
+
+
+    public static double getIntakePivotkP(){
+        return kP.get();
+    }
+
+    public static double getIntakePivotkI(){
+        return kI.get();
+    }
+
+    public static double getIntakePivotkD(){
+        return kD.get();
+    }
+
 }
+
+
