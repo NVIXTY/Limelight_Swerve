@@ -1,150 +1,164 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.subsystems.Intake;
 
+import org.littletonrobotics.junction.Logger;
+
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Intake extends SubsystemBase {
-    private final TalonFX motor;         // slapdown pivot (Falcon 500)
-    private final TalonFX rollerMotor;   // intake roller (Falcon 500)
+  private TalonFX pivotMotor;
+  private TalonFXConfiguration pivotConfig;
 
-    private double deployedPositionRotations = IntakeConstants.DEPLOYED_POSITION_ROT;
+  private TalonFX rollerMotor;
+  private TalonFXConfiguration rollerConfig;
 
-    private double kP = IntakeConstants.KP;
-    private double kI = IntakeConstants.KI;
-    private double kD = IntakeConstants.KD;
+  private MotionMagicVoltage m_motionRequest;
 
-    // Roller velocity config (RPS)
-    private double rollerForwardVelocityRps = IntakeConstants.ROLLER_FORWARD_VELOCITY_RPS;
-    private double rollerReverseVelocityRps = IntakeConstants.ROLLER_REVERSE_VELOCITY_RPS;
+  private IntakeState currentState = IntakeState.STOP;
 
-    private final PositionVoltage positionRequest = new PositionVoltage(0).withSlot(0);
-    private final DutyCycleOut manualRequest = new DutyCycleOut(0);
-    private final VelocityVoltage rollerVelocityRequest = new VelocityVoltage(0).withSlot(0);
+  /** Creates a new intake. */
+  public Intake() {
+    pivotMotor = new TalonFX(IntakeConstants.kPivotMotorId);
 
-    public Intake() {
-        this(IntakeConstants.MOTOR_ID, IntakeConstants.ROLLER_MOTOR_ID);
-    }
+    pivotConfig = new TalonFXConfiguration()
+                        .withMotorOutput(new MotorOutputConfigs()
+                                          .withInverted(InvertedValue.CounterClockwise_Positive)
+                                          .withNeutralMode(NeutralModeValue.Brake))
+                        .withSlot0(new Slot0Configs()
+                                    .withKP(IntakeConstants.kP)
+                                    .withKI(IntakeConstants.kI)
+                                    .withKD(IntakeConstants.kD))
+                        .withMotionMagic(new MotionMagicConfigs()
+                                        .withMotionMagicCruiseVelocity(IntakeConstants.kCruiseVelocity)
+                                        .withMotionMagicAcceleration(IntakeConstants.kAcceleration))
+                        .withCurrentLimits(new CurrentLimitsConfigs()
+                                        .withSupplyCurrentLimit(IntakeConstants.kSupplyCurrentLimit))
+                        .withFeedback(new FeedbackConfigs()
+                                      .withSensorToMechanismRatio(IntakeConstants.kSensorToMechanismRatio));
+    
+    pivotMotor.getConfigurator().apply(pivotConfig);
 
-    public Intake(int pivotMotorID) {
-        this(pivotMotorID, IntakeConstants.ROLLER_MOTOR_ID);
-    }
+    m_motionRequest = new MotionMagicVoltage(0).withSlot(0);
 
-    public Intake(int pivotMotorID, int rollerMotorID) {
-        motor = IntakeConstants.CAN_BUS.isEmpty() ? new TalonFX(pivotMotorID) : new TalonFX(pivotMotorID, IntakeConstants.CAN_BUS);
-        rollerMotor = IntakeConstants.CAN_BUS.isEmpty() ? new TalonFX(rollerMotorID) : new TalonFX(rollerMotorID, IntakeConstants.CAN_BUS);
+    pivotMotor.setPosition(0);
 
-        TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
-        pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        Slot0Configs pivotSlot0 = pivotConfig.Slot0;
-        pivotSlot0.kP = kP;
-        pivotSlot0.kI = kI;
-        pivotSlot0.kD = kD;
-        motor.getConfigurator().apply(pivotConfig);
-        motor.setPosition(IntakeConstants.TOP_POSITION_ROT);
 
-        TalonFXConfiguration rollerConfig = new TalonFXConfiguration();
-        rollerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        Slot0Configs rollerSlot0 = rollerConfig.Slot0;
-        rollerSlot0.kP = IntakeConstants.ROLLER_KP;
-        rollerSlot0.kI = IntakeConstants.ROLLER_KI;
-        rollerSlot0.kD = IntakeConstants.ROLLER_KD;
-        rollerMotor.getConfigurator().apply(rollerConfig);
+    rollerMotor = new TalonFX(IntakeConstants.kRollerMotorId);
 
-        SmartDashboard.putNumber(IntakeConstants.KEY_DEPLOYED_SETPOINT, deployedPositionRotations);
-        SmartDashboard.putNumber(IntakeConstants.KEY_KP, kP);
-        SmartDashboard.putNumber(IntakeConstants.KEY_KI, kI);
-        SmartDashboard.putNumber(IntakeConstants.KEY_KD, kD);
-        SmartDashboard.putNumber(IntakeConstants.KEY_ROLLER_FWD_RPS, rollerForwardVelocityRps);
-        SmartDashboard.putNumber(IntakeConstants.KEY_ROLLER_REV_RPS, rollerReverseVelocityRps);
-    }
+    rollerConfig = new TalonFXConfiguration()
+                        .withMotorOutput(new MotorOutputConfigs()
+                                              .withInverted(InvertedValue.Clockwise_Positive) //Set motor inversion based on mechanism
+                                              .withNeutralMode(NeutralModeValue.Brake))
+                        .withCurrentLimits(new CurrentLimitsConfigs()
+                                              .withSupplyCurrentLimit(IntakeConstants.kRollerSupplyCurrentLimit));
 
-    /** Moves intake to deployed setpoint and spins roller forward at configured velocity. */
-    public void deploy() {
-        deployedPositionRotations = SmartDashboard.getNumber(
-            IntakeConstants.KEY_DEPLOYED_SETPOINT, deployedPositionRotations);
-        motor.setControl(positionRequest.withPosition(deployedPositionRotations));
-        runRollerForward();
-    }
+    rollerMotor.getConfigurator().apply(rollerConfig);
+  }
 
-    /** Moves intake to top (0 rotations) and stops roller. */
-    public void retract() {
-        motor.setControl(positionRequest.withPosition(IntakeConstants.TOP_POSITION_ROT));
-        stopRoller();
-    }
-
-    /** Manual open-loop pivot control for tuning (-1.0 to 1.0). */
-    public void manualControl(double percentOutput) {
-        double clamped = MathUtil.clamp(
-            percentOutput,
-            -IntakeConstants.MANUAL_OUTPUT_LIMIT,
-            IntakeConstants.MANUAL_OUTPUT_LIMIT);
-        motor.setControl(manualRequest.withOutput(clamped));
-    }
-
-    /** Runs roller forward in velocity closed-loop. */
-    public void runRollerForward() {
-        rollerForwardVelocityRps = SmartDashboard.getNumber(IntakeConstants.KEY_ROLLER_FWD_RPS, rollerForwardVelocityRps);
-        rollerMotor.setControl(rollerVelocityRequest.withVelocity(rollerForwardVelocityRps));
-    }
-
-    /** Runs roller reverse in velocity closed-loop. */
-    public void runRollerReverse() {
-        rollerReverseVelocityRps = SmartDashboard.getNumber(IntakeConstants.KEY_ROLLER_REV_RPS, rollerReverseVelocityRps);
-        rollerMotor.setControl(rollerVelocityRequest.withVelocity(-Math.abs(rollerReverseVelocityRps)));
-    }
-
-    /** Stops only roller motor. */
-    public void stopRoller() {
+  public void setGoal(IntakeState desiredState) {
+    currentState = desiredState;
+    switch (desiredState) {
+      case INTAKE:
+        setPivotPosition(IntakeConstants.kIntakeDownPosition);
+        rollerMotor.set(IntakeConstants.kSpeed);
+        break;
+      case OUTTAKE:
+        setPivotPosition(IntakeConstants.kIntakeDownPosition);
+        rollerMotor.set(-IntakeConstants.kSpeed);
+        break;
+      case AGITATE:
+        setPivotPosition(IntakeConstants.kIntakeAgitatePosition);
+        rollerMotor.set(IntakeConstants.kSpeed);
+        break;
+      case STOP:
+        pivotMotor.stopMotor();
         rollerMotor.stopMotor();
-    }
-
-    /** Stops both pivot and roller motors. */
-    public void stop() {
-        motor.stopMotor();
+        break;
+      case STOW:
+        setPivotPosition(IntakeConstants.kIntakeUpPosition);
         rollerMotor.stopMotor();
+        break;
+      
     }
+  }
 
-    public void setDeployedPositionRotations(double rotations) {
-        deployedPositionRotations = rotations;
-        SmartDashboard.putNumber(IntakeConstants.KEY_DEPLOYED_SETPOINT, deployedPositionRotations);
-    }
+  public void rollerIntake() {
+    rollerMotor.set(IntakeConstants.kSpeed);
+  }
 
-    public double getPositionRotations() {
-        return motor.getPosition().getValueAsDouble();
-    }
+  public void rollerOuttake() {
+    rollerMotor.set(-IntakeConstants.kSpeed);
+  }
 
-    public double getRollerVelocityRps() {
-        return rollerMotor.getVelocity().getValueAsDouble();
-    }
+  public void rollerStop() {
+    rollerMotor.stopMotor();
+  }
 
-    @Override
-    public void periodic() {
-        SmartDashboard.putNumber(IntakeConstants.KEY_POS_ROT, getPositionRotations());
-        SmartDashboard.putNumber(IntakeConstants.KEY_ROLLER_VEL_RPS, getRollerVelocityRps());
 
-        double newKP = SmartDashboard.getNumber(IntakeConstants.KEY_KP, kP);
-        double newKI = SmartDashboard.getNumber(IntakeConstants.KEY_KI, kI);
-        double newKD = SmartDashboard.getNumber(IntakeConstants.KEY_KD, kD);
 
-        if (newKP != kP || newKI != kI || newKD != kD) {
-            kP = newKP;
-            kI = newKI;
-            kD = newKD;
+  public void pivotUp() {
+    pivotMotor.set(IntakeConstants.kSpeed);
+  }
 
-            Slot0Configs slot0 = new Slot0Configs();
-            slot0.kP = kP;
-            slot0.kI = kI;
-            slot0.kD = kD;
-            motor.getConfigurator().apply(slot0);
-        }
-    }
+  public void pivotDown() {
+    pivotMotor.set(-IntakeConstants.kSpeed);
+  }
+
+  public void pivotStop() {
+    pivotMotor.stopMotor();
+  }
+
+
+
+  public void zeroIntake() {
+    pivotMotor.setPosition(0);
+  }
+
+  public void setPivotPosition(double position) {
+    pivotMotor.setControl(m_motionRequest.withPosition(position));
+  }
+
+ 
+
+  @Override
+  public void periodic() {
+    logMotorData();
+  }
+
+  public boolean isAtSetpoint() {
+    return Math.abs((pivotMotor.getPosition().getValueAsDouble()) - (m_motionRequest.Position)) <= IntakeConstants.kTolerance;
+  }
+
+  public void logMotorData() {
+
+    Logger.recordOutput("Subsystems/Intake/IntakeState", currentState.name());
+    
+    Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorSpeed", pivotMotor.get());
+    Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorSupplyCurrent", pivotMotor.getSupplyCurrent().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorStatorCurrent", pivotMotor.getStatorCurrent().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorVoltage", pivotMotor.getMotorVoltage().getValueAsDouble());
+
+    Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorPosition", pivotMotor.getPosition().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorSetpoint", m_motionRequest.Position);
+    Logger.recordOutput("Subsystems/Intake/Basic/Pivot/IsAtSetpoint", isAtSetpoint());
+
+    Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorSpeed", rollerMotor.get());
+    Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorSupplyCurrent", rollerMotor.getSupplyCurrent().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorStatorCurrent", rollerMotor.getStatorCurrent().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorVoltage", rollerMotor.getMotorVoltage().getValueAsDouble());
+}
 }

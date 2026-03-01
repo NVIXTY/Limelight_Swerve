@@ -1,43 +1,35 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.subsystems.Intake;
 
-public final class IntakeConstants {
-    private IntakeConstants() {}
+/** Add your docs here. */
+public class IntakeConstants {
+    public static final int kPivotMotorId = 22;
 
-    // Hardware
-    public static final int MOTOR_ID = 30; // TODO: set real CAN ID
-    public static final String CAN_BUS = ""; // default CAN bus
-    public static final int ROLLER_MOTOR_ID = 31; // TODO set actual ID
+    public static final double kP = 200;
+    public static final double kI = 0;
+    public static final double kD = 0;
 
-    // Setpoints (motor rotations)
-    public static final double TOP_POSITION_ROT = 0.0;
-    public static final double DEPLOYED_POSITION_ROT = 20.0; // TODO: tune from dashboard reading
+    public static final double kCruiseVelocity = 500;
+    public static final double kAcceleration = 800;
 
-    // PID (slot 0)
-    public static final double KP = 8.0;
-    public static final double KI = 0.0;
-    public static final double KD = 0.2;
+    
+    public static final double kTolerance = 0.05;
 
-    // Roller PID (slot 0)
-    public static final double ROLLER_KP = 0.12;
-    public static final double ROLLER_KI = 0.0;
-    public static final double ROLLER_KD = 0.0;
+    public static final double kSupplyCurrentLimit = 35;
 
-    // Roller velocity setpoints (RPS)
-    public static final double ROLLER_FORWARD_VELOCITY_RPS = 25.0;
-    public static final double ROLLER_REVERSE_VELOCITY_RPS = -15.0;
+    public static final double kSensorToMechanismRatio = 75;
 
-    // Safety / behavior
-    public static final double MANUAL_OUTPUT_LIMIT = 0.1;
+    public static final double kSpeed = 0.75;
 
-    // Dashboard keys
-    public static final String KEY_POS_ROT = "Intake/PositionRot";
-    public static final String KEY_DEPLOYED_SETPOINT = "Intake/DeployedSetpointRot";
-    public static final String KEY_KP = "Intake/kP";
-    public static final String KEY_KI = "Intake/kI";
-    public static final String KEY_KD = "Intake/kD";
-    public static final String KEY_ROLLER_FWD_RPS = "Intake/RollerForwardRPS";
-    public static final String KEY_ROLLER_REV_RPS = "Intake/RollerReverseRPS";
-    public static final String KEY_ROLLER_VEL_RPS = "Intake/RollerVelocityRPS";
+    public static final double kIntakeUpPosition = 0.0;
+    public static final double kIntakeAgitatePosition = 0.3;
+    public static final double kIntakeDownPosition = 0.6;
+
+
+    public static final int kRollerMotorId = 23;
+    public static final double kRollerSupplyCurrentLimit = 35;
+
 }
-
-// TODO - TUNE EVERY VALUE IN CONSTANTS
