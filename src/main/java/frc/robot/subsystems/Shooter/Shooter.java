@@ -18,7 +18,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Drive.SwerveDrivetrain;
 
 public class Shooter extends SubsystemBase {
   private TalonFX shooterMotor1;
@@ -29,13 +29,17 @@ public class Shooter extends SubsystemBase {
   private MotionMagicVelocityVoltage m_motionRequest2;
   private VoltageOut m_voltageRequest;
 
+<<<<<<< HEAD
+  private SwerveDrivetrain m_swerveSubsystem;
+=======
   @SuppressWarnings("unused")
   private CommandSwerveDrivetrain m_swerveSubsystem;
+>>>>>>> 995b5c5 (cleaned up robotcontainer, added support for dual motor on shooter.)
 
   private InterpolatingDoubleTreeMap kShooterMap = new InterpolatingDoubleTreeMap();
 
 
-  public Shooter(CommandSwerveDrivetrain swerveSubsystem) {
+  public Shooter(SwerveDrivetrain swerveSubsystem) {
     this.m_swerveSubsystem = swerveSubsystem;
 
     shooterMotor1 = new TalonFX(0); // TODO: set correct ID
