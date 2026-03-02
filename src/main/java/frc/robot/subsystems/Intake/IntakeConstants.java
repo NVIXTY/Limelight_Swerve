@@ -11,9 +11,9 @@ public class IntakeConstants {
     public static final int kPivotMotorId = 22;
 
 
-    public static final LoggedTunableNumber kP = new LoggedTunableNumber("Tuning/Intake/Pivot/kP", 1,true);
-    public static final LoggedTunableNumber kI = new LoggedTunableNumber("Tuning/Intake/Pivot/kI", 0,true);
-    public static final LoggedTunableNumber kD = new LoggedTunableNumber("Tuning/Intake/Pivot/kD", 0,true);
+    public static final LoggedTunableNumber kP = new LoggedTunableNumber("Intake/Pivot/kP", 1,true);
+    public static final LoggedTunableNumber kI = new LoggedTunableNumber("Intake/Pivot/kI", 0,true);
+    public static final LoggedTunableNumber kD = new LoggedTunableNumber("Intake/Pivot/kD", 0,true);
 
     public static final double kCruiseVelocity = 500;
     public static final double kAcceleration = 800;
