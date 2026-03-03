@@ -22,10 +22,14 @@ import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.TunerConstants;
 import frc.robot.subsystems.Intake.Intake;
 import frc.robot.subsystems.Intake.IntakeState;
+import frc.robot.subsystems.Kicker.Kicker;
+import frc.robot.subsystems.Kicker.KickerState;
+import frc.robot.subsystems.Indexer.Indexer;
+import frc.robot.subsystems.Indexer.IndexerState;
 
 public class RobotContainer {
-    private final double MaxSpeed = 0.25 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
-    private final double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+    private final double MaxSpeed = 5.12 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    private final double MaxAngularRate = RotationsPerSecond.of(1).in(RadiansPerSecond);
 
     // Drive requests
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -43,7 +47,9 @@ public class RobotContainer {
     // Subsystems
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final Intake intake = new Intake();
-
+    public final Kicker kicker = new Kicker();
+    public final Indexer indexer = new Indexer();
+    
     // Auto
     private final SendableChooser<Command> autoChooser;
 
@@ -83,6 +89,42 @@ public class RobotContainer {
         ).onFalse(
             intake.runOnce(()->{
                 intake.setGoal(IntakeState.STOP);
+            })
+        );
+
+        driver.rightTrigger().onTrue(
+            intake.runOnce(()->{
+                intake.setGoal(IntakeState.STOW);
+            })
+        );
+
+        driver.x().onTrue(
+            kicker.runOnce(()->{
+                kicker.setGoal(KickerState.KICK);
+            })
+        ).onFalse(
+            kicker.runOnce(()->{
+                kicker.setGoal(KickerState.STOP);
+            })
+        );
+
+        driver.a().onTrue(
+            kicker.runOnce(()->{
+                kicker.setGoal(KickerState.OUTKICK);
+            })
+        ).onFalse(
+            kicker.runOnce(()->{
+                kicker.setGoal(KickerState.STOP);
+            })
+        );
+
+        driver.x().onTrue(
+            indexer.runOnce(()->{
+                indexer.setGoal(IndexerState.INDEX);
+            })
+        ).onFalse(
+            indexer.runOnce(()->{
+                indexer.setGoal(IndexerState.STOP);
             })
         );
 

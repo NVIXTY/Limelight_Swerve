@@ -8,14 +8,14 @@ import frc.robot.util.LoggedTunableNumber;
 
 /** Add your docs here. */
 public class IntakeConstants {
-    public static final int kPivotMotorId = 22;
+    public static final int kPivotMotorId = 13;
 
 
-    public static final LoggedTunableNumber kP = new LoggedTunableNumber("Intake/Pivot/kP", 1,true);
-    public static final LoggedTunableNumber kI = new LoggedTunableNumber("Intake/Pivot/kI", 0,true);
-    public static final LoggedTunableNumber kD = new LoggedTunableNumber("Intake/Pivot/kD", 0,true);
+    public static final LoggedTunableNumber kP = new LoggedTunableNumber("Tuning/Intake/Pivot/kP", 60,true);
+    public static final LoggedTunableNumber kI = new LoggedTunableNumber("Tuning/Intake/Pivot/kI", 0,true);
+    public static final LoggedTunableNumber kD = new LoggedTunableNumber("Tuning/Intake/Pivot/kD", 0,true);
 
-    public static final double kCruiseVelocity = 500;
+    public static final double kCruiseVelocity = 600;
     public static final double kAcceleration = 800;
 
     
@@ -25,11 +25,11 @@ public class IntakeConstants {
 
     public static final double kSensorToMechanismRatio = 75;
 
-    public static final double kSpeed = 0.75;
+    public static final double kSpeed = -0.1;
 
     public static final double kIntakeUpPosition = 0.0;
-    public static final double kIntakeAgitatePosition = 0.3;
-    public static final double kIntakeDownPosition = 0.6;
+    public static final double kIntakeAgitatePosition = 0.1;
+    public static final double kIntakeDownPosition = 0.17;
 
 
     public static final int kRollerMotorId = 23;
