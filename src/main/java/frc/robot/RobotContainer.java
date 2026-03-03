@@ -17,13 +17,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import frc.robot.subsystems.Climber.Climber;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.TunerConstants;
 import frc.robot.subsystems.Intake.Intake;
 import frc.robot.subsystems.Intake.IntakeState;
 import frc.robot.subsystems.Kicker.Kicker;
 import frc.robot.subsystems.Kicker.KickerState;
+import frc.robot.subsystems.Shooter.Shooter;
 import frc.robot.subsystems.Indexer.Indexer;
 import frc.robot.subsystems.Indexer.IndexerState;
 
@@ -49,6 +49,7 @@ public class RobotContainer {
     public final Intake intake = new Intake();
     public final Kicker kicker = new Kicker();
     public final Indexer indexer = new Indexer();
+    public final Shooter shooter = new Shooter(drivetrain);
     
     // Auto
     private final SendableChooser<Command> autoChooser;

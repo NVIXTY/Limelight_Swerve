@@ -34,14 +34,14 @@ public class Superstructure {
     
 
     public Command prepRightFerryShot() {
-        return prepShot(() -> DriveConstants.getRightFerryPose().toPose2d());
+        return prepShot(() -> DriveConstants.getRightFerryPose());
     } 
 
     public Command prepLeftFerryShot() {
-        return prepShot(() -> DriveConstants.getLeftFerryPose().toPose2d());
+        return prepShot(() -> DriveConstants.getLeftFerryPose());
     } 
 
     public Command prepHubShot() {
-        return prepShot(() -> DriveConstants.getHubPose().toPose2d());
+        return prepShot(() -> DriveConstants.getHubPose());
     }
 }

@@ -4,7 +4,10 @@ import static edu.wpi.first.units.Units.Degrees;
 
 import java.util.Optional;
 
+import com.pathplanner.lib.util.FlippingUtil;
+
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -23,30 +26,30 @@ public class DriveConstants {
 
     public static final Transform2d shooterTransform = new Transform2d(Units.Inches.of(0.0), shooterSideOffset, new Rotation2d());
 
-    public static final Pose3d redHubPose = new Pose3d(5, 4, 0, new Rotation3d());
-    public static final Pose3d redLeftFerryPose = new Pose3d(14.3, 4.02, 0, Rotation3d.kZero);
-    public static final Pose3d redRightFerryPose = new Pose3d(2.5, 6.5, 0, Rotation3d.kZero);
-    public static final Pose3d blueHubPose = new Pose3d(5, 4, 0, new Rotation3d());
-    public static final Pose3d blueLeftFerryPose = new Pose3d(14.3, 4.02, 0, Rotation3d.kZero);
-    public static final Pose3d blueRightFerryPose = new Pose3d(2.5, 6.5, 0, Rotation3d.kZero);
+    public static final Pose2d redHubPose = new Pose2d(5, 4, Rotation2d.fromDegrees(0));
+    public static final Pose2d redLeftFerryPose = new Pose2d(14.3, 4.02, Rotation2d.fromDegrees(0));
+    public static final Pose2d redRightFerryPose = new Pose2d(2.5, 6.5, Rotation2d.fromDegrees(0));
+    public static final Pose2d blueHubPose = FlippingUtil.flipFieldPose(redHubPose);
+    public static final Pose2d blueLeftFerryPose = FlippingUtil.flipFieldPose(redLeftFerryPose);
+    public static final Pose2d blueRightFerryPose = FlippingUtil.flipFieldPose(redRightFerryPose);
 
     public static final double stickDeadband = 0.1;
     
 
     public static final Angle epsilonAngleToGoal = Degrees.of(-1.0);
 
-    public static final Pose3d getHubPose() {
-        Pose3d pose = DriverStation.getAlliance().equals(Optional.of(Alliance.Red)) ? redHubPose : blueHubPose;
+    public static final Pose2d getHubPose() {
+        Pose2d pose = DriverStation.getAlliance().equals(Optional.of(Alliance.Red)) ? redHubPose : blueHubPose;
         return pose;
     }
 
-    public static final Pose3d getLeftFerryPose() {
-        Pose3d pose = DriverStation.getAlliance().equals(Optional.of(Alliance.Red)) ? redLeftFerryPose : blueLeftFerryPose;
+    public static final Pose2d getLeftFerryPose() {
+        Pose2d pose = DriverStation.getAlliance().equals(Optional.of(Alliance.Red)) ? redLeftFerryPose : blueLeftFerryPose;
         return pose;
     }
 
-    public static final Pose3d getRightFerryPose() {
-        Pose3d pose = DriverStation.getAlliance().equals(Optional.of(Alliance.Red)) ? redRightFerryPose : blueRightFerryPose;
+    public static final Pose2d getRightFerryPose() {
+        Pose2d pose = DriverStation.getAlliance().equals(Optional.of(Alliance.Red)) ? redRightFerryPose : blueRightFerryPose;
         return pose;
     }
 

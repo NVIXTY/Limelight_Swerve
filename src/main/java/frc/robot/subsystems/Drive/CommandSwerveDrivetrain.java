@@ -77,15 +77,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public Distance getShotDistance() {
-        return getShotDistance(DriveConstants.getHubPose().toPose2d().getTranslation());
+        return getShotDistance(DriveConstants.getHubPose().getTranslation());
     }
 
     public Distance getLeftFerryDistance() {
-        return getShotDistance(DriveConstants.getLeftFerryPose().toPose2d().getTranslation());
+        return getShotDistance(DriveConstants.getLeftFerryPose().getTranslation());
     }
 
     public Distance getRightFerryDistance() {
-        return getShotDistance(DriveConstants.getRightFerryPose().toPose2d().getTranslation());
+        return getShotDistance(DriveConstants.getRightFerryPose().getTranslation());
     }
 
     public Command alignDrive(CommandXboxController controller, Supplier<Pose2d> targetPoseSupplier) {
