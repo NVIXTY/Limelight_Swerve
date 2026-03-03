@@ -4,16 +4,14 @@
 
 package frc.robot.subsystems.Hood;
 
-import frc.robot.util.LoggedTunableNumber;
-
 /** Add your docs here. */
 public class HoodConstants {
     public static final int kHoodMotorId = 22;
 
 
-    public static final LoggedTunableNumber kP = new LoggedTunableNumber("Hood/kP", 1,true);
-    public static final LoggedTunableNumber kI = new LoggedTunableNumber("Hood/kI", 0,true);
-    public static final LoggedTunableNumber kD = new LoggedTunableNumber("Hood/kD", 0,true);
+    public static final double kP = 1;
+    public static final double kI = 0;
+    public static final double kD = 0;
 
     public static final double kCruiseVelocity = 500;
     public static final double kAcceleration = 800;
@@ -30,19 +28,6 @@ public class HoodConstants {
     public static final double kTrenchPosition = 0.0;
     public static final double kHubPosition = 0.3;
     public static final double kFerryPosition = 0.6;
-
-
-    public static double getHoodkP(){
-        return kP.get();
-    }
-
-    public static double getHoodkI(){
-        return kI.get();
-    }
-
-    public static double getHoodkD(){
-        return kD.get();
-    }
 
 }
 

@@ -8,14 +8,12 @@ import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Intake.IntakeConstants;
 
 public class Kicker extends SubsystemBase {
 
@@ -33,10 +31,6 @@ public class Kicker extends SubsystemBase {
                       .withMotorOutput(new MotorOutputConfigs()
                                             .withInverted(InvertedValue.Clockwise_Positive) //Set motor inversion based on mechanism
                                             .withNeutralMode(NeutralModeValue.Brake))
-                        .withSlot0(new Slot0Configs()
-                                    .withKP(KickerConstants.getKickerPivotkP())
-                                    .withKI(KickerConstants.getKickerPivotkI())
-                                    .withKD(KickerConstants.getKickerPivotkD()))
                       .withCurrentLimits(new CurrentLimitsConfigs()
                                             .withSupplyCurrentLimit(KickerConstants.kKickerSupplyCurrentLimit));
 
