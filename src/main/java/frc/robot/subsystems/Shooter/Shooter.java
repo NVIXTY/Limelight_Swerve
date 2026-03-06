@@ -11,9 +11,11 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -22,7 +24,8 @@ import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.DriveConstants;
 
 public class Shooter extends SubsystemBase {
-  private TalonFX shooterMotor;
+  private TalonFX shooterMotor1;
+  private TalonFX shooterMotor2;
   private TalonFXConfiguration shooterConfig;
 
   private MotionMagicVelocityVoltage m_motionRequest;
@@ -37,7 +40,8 @@ public class Shooter extends SubsystemBase {
 
   public Shooter(CommandSwerveDrivetrain swerveSubsystem) {
     this.m_swerveSubsystem = swerveSubsystem;
-    shooterMotor = new TalonFX(ShooterConstants.kShooterMotorId);
+    shooterMotor1 = new TalonFX(ShooterConstants.kShooterMotorId1);
+    shooterMotor2 = new TalonFX(ShooterConstants.kShooterMotorId2);
 
     shooterConfig = new TalonFXConfiguration()
                     .withMotorOutput(new MotorOutputConfigs()
@@ -55,13 +59,14 @@ public class Shooter extends SubsystemBase {
                                     .withMotionMagicJerk(ShooterConstants.kJerk))
                     .withCurrentLimits(new CurrentLimitsConfigs()
                                     .withSupplyCurrentLimit(ShooterConstants.kSupplyCurrentLimit));
-    shooterMotor.getConfigurator().apply(shooterConfig);
+    shooterMotor1.getConfigurator().apply(shooterConfig);
+
+    shooterMotor2.setControl(new Follower(ShooterConstants.kShooterMotorId1, MotorAlignmentValue.Opposed));
+    shooterMotor2.getConfigurator().apply(shooterConfig);
 
     m_motionRequest = new MotionMagicVelocityVoltage(0).withSlot(0);
 
-
   }
-
   @Override
   public void periodic() {
     logMotorData();
@@ -87,30 +92,31 @@ public class Shooter extends SubsystemBase {
         setShooterVelocity(ShooterConstants.kPrepSpeed);
         break;
       case STOP:
-        shooterMotor.stopMotor();
+        shooterMotor1.stopMotor();
+        shooterMotor2.stopMotor();
         break;  
     }
   }
 
 
   public void setShooterVelocity(double velocity) {
-    shooterMotor.setControl(m_motionRequest.withVelocity(velocity));
+    shooterMotor1.setControl(m_motionRequest.withVelocity(velocity));
   }
 
   public boolean isAtSetpoint() {
-    return Math.abs(shooterMotor.getVelocity().getValueAsDouble() - m_motionRequest.Velocity) <= ShooterConstants.kVelocityTolerance;
+    return Math.abs(shooterMotor1.getVelocity().getValueAsDouble() - m_motionRequest.Velocity) <= ShooterConstants.kVelocityTolerance;
   }
   
   private void logMotorData() {
     Logger.recordOutput("Subsystems/Shooter/ShooterState", currentState.name());
 
-    Logger.recordOutput("Subsystems/Shooter/Velocity/ShooterMotorVelocity", shooterMotor.getVelocity().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Shooter/Velocity/ShooterMotorVelocity", shooterMotor1.getVelocity().getValueAsDouble());
     Logger.recordOutput("Subsystems/Shooter/Velocity/ShooterSetpoint", m_motionRequest.Velocity);
-    Logger.recordOutput("Subsystems/Shooter/Velocity/IsAtSetpoint", Math.abs(shooterMotor.getVelocity().getValueAsDouble() - m_motionRequest.Velocity) <= ShooterConstants.kVelocityTolerance);
+    Logger.recordOutput("Subsystems/Shooter/Velocity/IsAtSetpoint", Math.abs(shooterMotor1.getVelocity().getValueAsDouble() - m_motionRequest.Velocity) <= ShooterConstants.kVelocityTolerance);
 
-    Logger.recordOutput("Subsystems/Shooter/Basic/ShooterMotorSupplyCurrent", shooterMotor.getSupplyCurrent().getValueAsDouble());
-    Logger.recordOutput("Subsystems/Shooter/Basic/ShooterMotorStatorCurrent", shooterMotor.getStatorCurrent().getValueAsDouble());
-    Logger.recordOutput("Subsystems/Shooter/Basic/ShooterMotorVoltage", shooterMotor.getMotorVoltage().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Shooter/Basic/ShooterMotorSupplyCurrent", shooterMotor1.getSupplyCurrent().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Shooter/Basic/ShooterMotorStatorCurrent", shooterMotor1.getStatorCurrent().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Shooter/Basic/ShooterMotorVoltage", shooterMotor1.getMotorVoltage().getValueAsDouble());
 
     Logger.recordOutput("Subsystems/Shooter/Tracking/HubDistance", m_hubDistance);
     Logger.recordOutput("Subsystems/Shooter/Tracking/LeftFerryDistance", m_LeftFerryDistance);

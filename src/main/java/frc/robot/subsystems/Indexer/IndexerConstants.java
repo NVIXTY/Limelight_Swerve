@@ -10,6 +10,6 @@ public class IndexerConstants {
 
     public static final int kIndexerSupplyCurrentLimit = 35;
 
-    public static final double kIndexerInSpeed = -0.12;
+    public static final double kIndexerInSpeed = -0.35;
     public static final double kIndexerOutSpeed = -kIndexerInSpeed;
 }

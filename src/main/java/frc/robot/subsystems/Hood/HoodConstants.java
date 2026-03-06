@@ -6,18 +6,18 @@ package frc.robot.subsystems.Hood;
 
 /** Add your docs here. */
 public class HoodConstants {
-    public static final int kHoodMotorId = 22;
+    public static final int kHoodMotorId = 10;
 
 
-    public static final double kP = 1;
+    public static final double kP = 175;
     public static final double kI = 0;
     public static final double kD = 0;
 
-    public static final double kCruiseVelocity = 500;
+    public static final double kCruiseVelocity = 100;
     public static final double kAcceleration = 800;
 
     
-    public static final double kTolerance = 0.05;
+    public static final double kTolerance = 0.0001;
 
     public static final double kSupplyCurrentLimit = 35;
 
@@ -26,7 +26,7 @@ public class HoodConstants {
     public static final double kSpeed = 0.1;
 
     public static final double kTrenchPosition = 0.0;
-    public static final double kHubPosition = 0.3;
+    public static final double kHubPosition = 0.066;
     public static final double kFerryPosition = 0.6;
 
 }

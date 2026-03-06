@@ -24,15 +24,16 @@ public class IntakeConstants {
 
     public static final double kSensorToMechanismRatio = 75;
 
-    public static final double kSpeed = -0.1;
+    public static final double kSpeed = -.3;
 
     public static final double kIntakeUpPosition = 0.0;
     public static final double kIntakeAgitatePosition = 0.1;
-    public static final double kIntakeDownPosition = 0.17;
+    public static final double kIntakeDownPosition = 0.17; // 0.17 is the max down position
+    public static final double kIntakeOuttakePosition = 0.1;
 
 
-    public static final int kRollerMotorId = 23;
-    public static final double kRollerSupplyCurrentLimit = 35;
+    public static final int kRollerMotorId = 15;
+    public static final double kRollerSupplyCurrentLimit = 60;
 
 
 }

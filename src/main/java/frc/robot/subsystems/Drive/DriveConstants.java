@@ -8,9 +8,7 @@ import com.pathplanner.lib.util.FlippingUtil;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -26,9 +24,9 @@ public class DriveConstants {
 
     public static final Transform2d shooterTransform = new Transform2d(Units.Inches.of(0.0), shooterSideOffset, new Rotation2d());
 
-    public static final Pose2d redHubPose = new Pose2d(5, 4, Rotation2d.fromDegrees(0));
-    public static final Pose2d redLeftFerryPose = new Pose2d(14.3, 4.02, Rotation2d.fromDegrees(0));
-    public static final Pose2d redRightFerryPose = new Pose2d(2.5, 6.5, Rotation2d.fromDegrees(0));
+    public static final Pose2d redHubPose = new Pose2d(11.921, 4.027, Rotation2d.fromDegrees(0));
+    public static final Pose2d redLeftFerryPose = new Pose2d(16, .55, Rotation2d.fromDegrees(0));
+    public static final Pose2d redRightFerryPose = new Pose2d(16, 7.55, Rotation2d.fromDegrees(0));
     public static final Pose2d blueHubPose = FlippingUtil.flipFieldPose(redHubPose);
     public static final Pose2d blueLeftFerryPose = FlippingUtil.flipFieldPose(redLeftFerryPose);
     public static final Pose2d blueRightFerryPose = FlippingUtil.flipFieldPose(redRightFerryPose);

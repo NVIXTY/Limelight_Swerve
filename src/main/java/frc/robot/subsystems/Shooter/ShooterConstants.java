@@ -9,7 +9,8 @@ import frc.robot.util.LoggedTunableNumber;
 
 /** Add your docs here. */
 public class ShooterConstants {
-    public static final int kShooterMotorId = 23;
+    public static final int kShooterMotorId1 = 12;
+    public static final int kShooterMotorId2 = 14;
 
     public static final int kSupplyCurrentLimit = 35;
 

@@ -77,11 +77,15 @@ public class Intake extends SubsystemBase {
         rollerMotor.set(IntakeConstants.kSpeed);
         break;
       case OUTTAKE:
-        setPivotPosition(IntakeConstants.kIntakeDownPosition);
+        setPivotPosition(IntakeConstants.kIntakeOuttakePosition);
         rollerMotor.set(-IntakeConstants.kSpeed);
         break;
       case AGITATE:
-        setPivotPosition(IntakeConstants.kIntakeAgitatePosition);
+        if (Math.abs(pivotMotor.getPosition().getValueAsDouble() - IntakeConstants.kIntakeDownPosition) <= IntakeConstants.kTolerance) {
+          setPivotPosition(IntakeConstants.kIntakeAgitatePosition);
+        } else if (Math.abs(pivotMotor.getPosition().getValueAsDouble() - IntakeConstants.kIntakeAgitatePosition) <= IntakeConstants.kTolerance) {
+          setPivotPosition(IntakeConstants.kIntakeDownPosition);
+        }
         rollerMotor.set(IntakeConstants.kSpeed);
         break;
       case STOP:
@@ -136,6 +140,15 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void periodic() {
+// Handle agitate state - alternate between positions
+    if (currentState == IntakeState.AGITATE) {
+      double currentPos = pivotMotor.getPosition().getValueAsDouble();
+      if (Math.abs(currentPos - IntakeConstants.kIntakeDownPosition) <= IntakeConstants.kTolerance) {
+        setPivotPosition(IntakeConstants.kIntakeAgitatePosition);
+      } else if (Math.abs(currentPos - IntakeConstants.kIntakeAgitatePosition) <= IntakeConstants.kTolerance) {
+        setPivotPosition(IntakeConstants.kIntakeDownPosition);
+      }
+    }
     logMotorData();
   }
 
