@@ -20,7 +20,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Drive.DriveConstants;
+
 
 public class Hood extends SubsystemBase {
   private TalonFX hoodMotor;
@@ -65,9 +65,9 @@ public class Hood extends SubsystemBase {
         break;
       case HUB:
         // Compute distance to virtual hub and use interpolated hood position
-        if (m_swerveSubsystem != null) {
+          if (m_swerveSubsystem != null) {
           Translation2d currentTranslation2d = m_swerveSubsystem.getState().Pose.getTranslation();
-          double hubDistance = currentTranslation2d.getDistance(DriveConstants.getVirtualHubPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
+          double hubDistance = currentTranslation2d.getDistance(frc.robot.subsystems.Drive.AutoAim.getVirtualHubPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
           sethoodPosition(HoodConstants.getHoodPosition(hubDistance));
         } else {
           sethoodPosition(HoodConstants.kHubPosition);
@@ -120,7 +120,7 @@ public class Hood extends SubsystemBase {
         case HUB: {
           if (m_swerveSubsystem != null) {
             Translation2d currentTranslation2d = m_swerveSubsystem.getState().Pose.getTranslation();
-            double hubDistance = currentTranslation2d.getDistance(DriveConstants.getVirtualHubPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
+            double hubDistance = currentTranslation2d.getDistance(frc.robot.subsystems.Drive.AutoAim.getVirtualHubPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
             double desired = HoodConstants.getHoodPosition(hubDistance);
             sethoodPosition(desired);
           }

@@ -80,19 +80,29 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     public Distance getShotDistance() {
         // Use virtual hub pose (accounts for robot motion) when computing shot distance
-        var virtualHub = DriveConstants.getVirtualHubPose(getState().Pose, getState().Speeds);
+        var virtualHub = AutoAim.getVirtualHubPose(getState().Pose, getState().Speeds);
         return getShotDistance(virtualHub.getTranslation());
     }
 
     public Distance getLeftFerryDistance() {
-        return getShotDistance(DriveConstants.getLeftFerryPose().getTranslation());
+        return getShotDistance(AutoAim.getVirtualLeftFerryPose(getState().Pose, getState().Speeds).getTranslation());
     }
 
     public Distance getRightFerryDistance() {
-        return getShotDistance(DriveConstants.getRightFerryPose().getTranslation());
+        return getShotDistance(AutoAim.getVirtualRightFerryPose(getState().Pose, getState().Speeds).getTranslation());
     }
 
     public Command alignDrive(CommandXboxController controller, Supplier<Pose2d> targetPoseSupplier) {
+        return alignDrive(controller, targetPoseSupplier, false);
+    }
+
+    /**
+     * Align while optionally applying hub-only lateral scaling.
+     * @param controller controller supplying joystick inputs
+     * @param targetPoseSupplier supplier of the desired target pose
+     * @param isHub true if the target is the hub (apply lateral scaling)
+     */
+    public Command alignDrive(CommandXboxController controller, Supplier<Pose2d> targetPoseSupplier, boolean isHub) {
         return applyRequest(() -> {
             double controllerVelX = -controller.getLeftY();
             double controllerVelY = -controller.getLeftX();
@@ -120,8 +130,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                     return new SwerveRequest.SwerveDriveBrake();
                 } else {
                 double rotationalRate = DriveConstants.rotationController.calculate(currentAngle.getRadians(), desiredAngle.getRadians());
-                return alignRequest.withVelocityX(controllerVelX * DriveConstants.maxSpeed)
-                .withVelocityY(controllerVelY * DriveConstants.maxSpeed)
+                // While aligning, optionally reduce lateral (X/Y) speed for smoother aiming when aligning to the hub.
+                double lateralScale = isHub ? DriveConstants.getHubLateralScale() : 1.0;
+                return alignRequest.withVelocityX(controllerVelX * DriveConstants.maxSpeed * lateralScale)
+                .withVelocityY(controllerVelY * DriveConstants.maxSpeed * lateralScale)
                 .withRotationalRate(rotationalRate * DriveConstants.maxAngularRate);
             }
         });
@@ -134,6 +146,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * can be called from a non-requiring command.
      */
     public SwerveRequest computeAlignRequest(Supplier<Pose2d> targetPoseSupplier) {
+        return computeAlignRequest(targetPoseSupplier, false);
+    }
+
+    /**
+     * Compute an alignment SwerveRequest towards the provided target pose
+     * using zero joystick input. Optionally apply hub-only lateral scaling.
+     */
+    public SwerveRequest computeAlignRequest(Supplier<Pose2d> targetPoseSupplier, boolean isHub) {
         double controllerVelX = 0.0;
         double controllerVelY = 0.0;
 
@@ -154,10 +174,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 && Math.hypot(controllerVelX, controllerVelY) < DriveConstants.stickDeadband) {
             return new SwerveRequest.SwerveDriveBrake();
         } else {
-            double rotationalRate = DriveConstants.rotationController.calculate(currentAngle.getRadians(), desiredAngle.getRadians());
-            return alignRequest.withVelocityX(controllerVelX * DriveConstants.maxSpeed)
-                    .withVelocityY(controllerVelY * DriveConstants.maxSpeed)
-                    .withRotationalRate(rotationalRate * DriveConstants.maxAngularRate);
+        double rotationalRate = DriveConstants.rotationController.calculate(currentAngle.getRadians(), desiredAngle.getRadians());
+        double lateralScale = isHub ? DriveConstants.getHubLateralScale() : 1.0; // only reduce lateral speed when aligning to the hub
+        return alignRequest.withVelocityX(controllerVelX * DriveConstants.maxSpeed * lateralScale)
+            .withVelocityY(controllerVelY * DriveConstants.maxSpeed * lateralScale)
+            .withRotationalRate(rotationalRate * DriveConstants.maxAngularRate);
         }
     }
 

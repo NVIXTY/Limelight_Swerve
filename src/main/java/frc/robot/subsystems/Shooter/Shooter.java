@@ -23,7 +23,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Drive.DriveConstants;
+
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Shooter extends SubsystemBase {
@@ -156,7 +156,7 @@ public class Shooter extends SubsystemBase {
     Translation2d currentTranslation2d = m_swerveSubsystem.getState().Pose.getTranslation();
     switch (desiredState) {
       case HUB:
-        m_hubDistance = currentTranslation2d.getDistance(DriveConstants.getVirtualHubPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
+        m_hubDistance = currentTranslation2d.getDistance(frc.robot.subsystems.Drive.AutoAim.getVirtualHubPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
         setShooterVelocity(ShooterConstants.getShooterHubVelocity(m_hubDistance));
         // Publish hub distance to NetworkTables for AdvantageKit / NT consumers
         try {
@@ -166,11 +166,11 @@ public class Shooter extends SubsystemBase {
         }
         break;
       case LEFT_FERRY:
-        m_LeftFerryDistance = currentTranslation2d.getDistance(DriveConstants.getLeftFerryPose().getTranslation());
+        m_LeftFerryDistance = currentTranslation2d.getDistance(frc.robot.subsystems.Drive.AutoAim.getVirtualLeftFerryPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
         setShooterVelocity(ShooterConstants.getShooterFerryVelocity(m_LeftFerryDistance));
         break;
       case RIGHT_FERRY:
-        m_RightFerryDistance = currentTranslation2d.getDistance(DriveConstants.getRightFerryPose().getTranslation());
+        m_RightFerryDistance = currentTranslation2d.getDistance(frc.robot.subsystems.Drive.AutoAim.getVirtualRightFerryPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
         setShooterVelocity(ShooterConstants.getShooterFerryVelocity(m_RightFerryDistance));
         break;
       case IDLE:

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Drive.AutoAim;
 import frc.robot.subsystems.Drive.TunerConstants;
 import frc.robot.subsystems.Hood.Hood;
 import frc.robot.subsystems.Hood.HoodState;
@@ -70,7 +71,7 @@ public class RobotContainer {
     public final Indexer indexer = new Indexer();
     public final Shooter shooter = new Shooter(drivetrain);
     public final Hood hood = new Hood(drivetrain);
-    private final Superstructure superstructure = new Superstructure(drivetrain, this);
+    private final AutoAim superstructure = new AutoAim(drivetrain, this);
     
     // Auto
     private final SendableChooser<Command> autoChooser;
@@ -211,6 +212,8 @@ public class RobotContainer {
         // ZERO
         driver.start().onTrue(Commands.runOnce(() ->
             drivetrain.resetPose(new Pose2d(drivetrain.getState().Pose.getTranslation(), Rotation2d.kZero))));
+
+        // TESTING
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
