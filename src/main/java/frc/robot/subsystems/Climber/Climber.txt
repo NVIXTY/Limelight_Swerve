@@ -44,11 +44,10 @@ public class Climber extends SubsystemBase {
 
   }
 
-    @Override
+  @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    // Periodic: Climber has manual/triggered actions; periodic emits telemetry only.
     logMotorData();
-
   }
 
   public void setGoal(ClimberState desiredState) {

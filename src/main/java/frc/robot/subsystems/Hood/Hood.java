@@ -17,7 +17,10 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Drive.DriveConstants;
 
 public class Hood extends SubsystemBase {
   private TalonFX hoodMotor;
@@ -26,9 +29,10 @@ public class Hood extends SubsystemBase {
   private MotionMagicVoltage m_motionRequest;
 
   private HoodState currentState = HoodState.STOP;
+  private CommandSwerveDrivetrain m_swerveSubsystem;
 
-  /** Creates a new intake. */
-  public Hood() {
+  public Hood(CommandSwerveDrivetrain swerveSubsystem) {
+    this.m_swerveSubsystem = swerveSubsystem;
     hoodMotor = new TalonFX(HoodConstants.kHoodMotorId);
     hoodConfig = new TalonFXConfiguration()
                         .withMotorOutput(new MotorOutputConfigs()
@@ -60,7 +64,14 @@ public class Hood extends SubsystemBase {
         sethoodPosition(HoodConstants.kTrenchPosition);
         break;
       case HUB:
-        sethoodPosition(HoodConstants.kHubPosition);
+        // Compute distance to virtual hub and use interpolated hood position
+        if (m_swerveSubsystem != null) {
+          Translation2d currentTranslation2d = m_swerveSubsystem.getState().Pose.getTranslation();
+          double hubDistance = currentTranslation2d.getDistance(DriveConstants.getVirtualHubPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
+          sethoodPosition(HoodConstants.getHoodPosition(hubDistance));
+        } else {
+          sethoodPosition(HoodConstants.kHubPosition);
+        }
         break;
       case FERRY:
         sethoodPosition(HoodConstants.kFerryPosition);
@@ -68,7 +79,9 @@ public class Hood extends SubsystemBase {
       case STOP:
         hoodMotor.stopMotor();
         break;
-      
+      default:
+        // no-op for other states
+        break;
     }
   }
 
@@ -99,6 +112,29 @@ public class Hood extends SubsystemBase {
   @Override
   public void periodic() {
     logMotorData();
+
+    // If we're currently in a shooting hood state, recompute the interpolated
+    // hood position each loop so tunable changes take effect immediately.
+    try {
+      switch (currentState) {
+        case HUB: {
+          if (m_swerveSubsystem != null) {
+            Translation2d currentTranslation2d = m_swerveSubsystem.getState().Pose.getTranslation();
+            double hubDistance = currentTranslation2d.getDistance(DriveConstants.getVirtualHubPose(m_swerveSubsystem.getState().Pose, m_swerveSubsystem.getState().Speeds).getTranslation());
+            double desired = HoodConstants.getHoodPosition(hubDistance);
+            sethoodPosition(desired);
+          }
+        } break;
+        case FERRY: {
+          sethoodPosition(HoodConstants.kFerryPosition);
+        } break;
+        default:
+          // No periodic recompute for other states
+          break;
+      }
+    } catch (Exception ex) {
+      // Don't let errors in periodic break the main loop; ignore and continue.
+    }
   }
 
   public boolean isAtSetpoint() {

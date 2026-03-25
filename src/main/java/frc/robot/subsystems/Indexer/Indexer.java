@@ -22,27 +22,23 @@ public class Indexer extends SubsystemBase {
 
   private IndexerState currentState = IndexerState.STOP;
 
-  /** Creates a new Indexer. */
+  
   public Indexer() {
+    indexerMotor = new TalonFX(IndexerConstants.kIndexerMotorId);
 
-  indexerMotor = new TalonFX(IndexerConstants.kIndexerMotorId);
+    indexerConfig = new TalonFXConfiguration()
+    .withMotorOutput(new MotorOutputConfigs()
+      .withInverted(InvertedValue.Clockwise_Positive)
+      .withNeutralMode(NeutralModeValue.Brake))
+        .withCurrentLimits(new CurrentLimitsConfigs()
+            .withSupplyCurrentLimit(IndexerConstants.kIndexerSupplyCurrentLimit));
 
-  indexerConfig = new TalonFXConfiguration()
-                      .withMotorOutput(new MotorOutputConfigs()
-                                            .withInverted(InvertedValue.Clockwise_Positive) //Set motor inversion based on mechanism
-                                            .withNeutralMode(NeutralModeValue.Brake))
-                      .withCurrentLimits(new CurrentLimitsConfigs()
-                                            .withSupplyCurrentLimit(IndexerConstants.kIndexerSupplyCurrentLimit));
-
-  indexerMotor.getConfigurator().apply(indexerConfig);
-
+    indexerMotor.getConfigurator().apply(indexerConfig);
   }
 
-    @Override
+  @Override
   public void periodic() {
-    // This method will be called once per scheduler run
     logMotorData();
-
   }
 
   public void setGoal(IndexerState desiredState) {

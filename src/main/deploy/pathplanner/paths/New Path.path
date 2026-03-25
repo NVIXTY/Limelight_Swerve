@@ -3,37 +3,49 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.0,
-        "y": 7.0
+        "x": 2.0556708407871196,
+        "y": 4.513649373881932
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.0,
-        "y": 7.0
+        "x": 2.184314305124528,
+        "y": 4.2405860066290675
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 11.921,
-        "y": 4.027
+        "x": 2.0556708407871196,
+        "y": 3.1020393559928436
       },
       "prevControl": {
-        "x": 10.921,
-        "y": 4.027
+        "x": 2.0268907020788864,
+        "y": 3.3503772379519496
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "yaya"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Align Hub After Path",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Align Hub After Path"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
-    "maxVelocity": 3.0,
+    "maxVelocity": 2.75,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -45,7 +57,7 @@
     "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Left 1 Swipe",
+  "folder": "testing purposes",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

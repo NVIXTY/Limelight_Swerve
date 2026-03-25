@@ -4,7 +4,7 @@
 
 package frc.robot.subsystems.Kicker;
 
-/** Add your docs here. */
+
 public enum KickerState {
     KICK,
     OUTKICK,

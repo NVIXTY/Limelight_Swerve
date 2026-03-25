@@ -4,11 +4,11 @@
 
 package frc.robot.subsystems.Indexer;
 
-/** Add your docs here. */
+
 public class IndexerConstants {
     public static final int kIndexerMotorId = 11;
 
-    public static final int kIndexerSupplyCurrentLimit = 35;
+    public static final int kIndexerSupplyCurrentLimit = 20;
 
     public static final double kIndexerInSpeed = -0.35;
     public static final double kIndexerOutSpeed = -kIndexerInSpeed;

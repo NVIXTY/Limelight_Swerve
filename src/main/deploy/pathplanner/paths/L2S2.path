@@ -1,0 +1,286 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.62953488372093,
+        "y": 7.369320214669052
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 4.303686701590131,
+        "y": 7.833958055102015
+      },
+      "isLocked": false,
+      "linkedName": "L1S1"
+    },
+    {
+      "anchor": {
+        "x": 6.809713774597495,
+        "y": 6.947459749552772
+      },
+      "prevControl": {
+        "x": 6.566332737030411,
+        "y": 7.304418604651163
+      },
+      "nextControl": {
+        "x": 6.950547980757872,
+        "y": 6.740902913850885
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.117996422182468,
+        "y": 4.708354203935598
+      },
+      "prevControl": {
+        "x": 7.76072445206133,
+        "y": 6.364679881777305
+      },
+      "nextControl": {
+        "x": 6.909332106395253,
+        "y": 4.170621215454023
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.91731663685152,
+        "y": 5.162665474060823
+      },
+      "prevControl": {
+        "x": 5.972253556092841,
+        "y": 4.318865820818581
+      },
+      "nextControl": {
+        "x": 5.890598789274598,
+        "y": 5.573036329072822
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.047119856887299,
+        "y": 6.947459749552772
+      },
+      "prevControl": {
+        "x": 6.27282444921033,
+        "y": 6.327814596553724
+      },
+      "nextControl": {
+        "x": 5.705873993127181,
+        "y": 7.88430974132121
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.62953488372093,
+        "y": 7.369320214669052
+      },
+      "prevControl": {
+        "x": 3.328435037802714,
+        "y": 7.256763739247881
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "L1S1"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5213903743315509,
+      "rotationDegrees": -76.10474075960721
+    },
+    {
+      "waypointRelativePos": 1.243315508021393,
+      "rotationDegrees": 90.0
+    },
+    {
+      "waypointRelativePos": 1.9,
+      "rotationDegrees": 90.0
+    },
+    {
+      "waypointRelativePos": 3.0,
+      "rotationDegrees": -80.0
+    },
+    {
+      "waypointRelativePos": 4.0,
+      "rotationDegrees": -40.0
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 1.2711864406779658,
+      "maxWaypointRelativePos": 3.6101694915254128,
+      "constraints": {
+        "maxVelocity": 2.5,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Trenched Hood",
+      "waypointRelativePos": 0.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Trenched Hood"
+        }
+      }
+    },
+    {
+      "name": "Stow",
+      "waypointRelativePos": 0.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Stow"
+        }
+      }
+    },
+    {
+      "name": "Stop Shot",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Stop Shot"
+        }
+      }
+    },
+    {
+      "name": "Stop Index",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Stop Index"
+        }
+      }
+    },
+    {
+      "name": "Stop Kick",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Stop Kick"
+        }
+      }
+    },
+    {
+      "name": "Intake",
+      "waypointRelativePos": 0.5423728813559323,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Intake"
+        }
+      }
+    },
+    {
+      "name": "Hub Shot",
+      "waypointRelativePos": 4.542372881355937,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Hub Shot"
+        }
+      }
+    },
+    {
+      "name": "Align Hub",
+      "waypointRelativePos": 5.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Align Hub"
+        }
+      }
+    },
+    {
+      "name": "Hubbed Hood",
+      "waypointRelativePos": 5.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Hubbed Hood"
+        }
+      }
+    },
+    {
+      "name": "Index",
+      "waypointRelativePos": 5.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Index"
+        }
+      }
+    },
+    {
+      "name": "Kick",
+      "waypointRelativePos": 5.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Kick"
+        }
+      }
+    },
+    {
+      "name": "Agitate",
+      "waypointRelativePos": 5.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Agitate"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 2.75,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0.0,
+    "rotation": -73.09484190136435
+  },
+  "reversed": false,
+  "folder": "Left 2 Swipe",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -73.09484190136435
+  },
+  "useDefaultConstraints": true
+}

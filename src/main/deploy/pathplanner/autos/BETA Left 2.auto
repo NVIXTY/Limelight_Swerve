@@ -1,0 +1,43 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "BETA L2S1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Align Hub"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 4.5
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "BETA L2S2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Align Hub"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

@@ -5,11 +5,11 @@
 package frc.robot.subsystems.Kicker;
 
 
-/** Add your docs here. */
+
 public class KickerConstants {
     public static final int kKickerMotorId = 9;
 
-    public static final int kKickerSupplyCurrentLimit = 70;
+    public static final int kKickerSupplyCurrentLimit = 30;
 
     public static final double kKickerInSpeed = 0.3;
     public static final double kKickerOutSpeed = -kKickerInSpeed;

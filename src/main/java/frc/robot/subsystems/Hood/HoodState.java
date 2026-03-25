@@ -4,7 +4,7 @@
 
 package frc.robot.subsystems.Hood;
 
-/** Add your docs here. */
+
 public enum HoodState {
     TRENCH,
     HUB,

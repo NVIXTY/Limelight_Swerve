@@ -36,6 +36,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.subsystems.Drive.TunerConstants.TunerSwerveDrivetrain;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
 
@@ -76,7 +79,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public Distance getShotDistance() {
-        return getShotDistance(DriveConstants.getHubPose().getTranslation());
+        // Use virtual hub pose (accounts for robot motion) when computing shot distance
+        var virtualHub = DriveConstants.getVirtualHubPose(getState().Pose, getState().Speeds);
+        return getShotDistance(virtualHub.getTranslation());
     }
 
     public Distance getLeftFerryDistance() {
@@ -94,13 +99,17 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
             Pose2d drivePose = getState().Pose;
             Pose2d targetPose = targetPoseSupplier.get();
-            double shooterOffset = -DriveConstants.shooterSideOffset.in(Units.Meters);
-            double targetDistance = drivePose.getTranslation().getDistance(targetPose.getTranslation());
-            double shooterAngleRads = Math.acos(shooterOffset / targetDistance); 
-            Rotation2d shooterAngle = Rotation2d.fromRadians(shooterAngleRads);
-            Rotation2d offsetAngle = Rotation2d.kCCW_90deg.minus(shooterAngle);
-            Rotation2d desiredAngle = offsetAngle.plus(drivePose.relativeTo(targetPose).getTranslation().getAngle()).plus(Rotation2d.k180deg);
-            desiredAngle = desiredAngle.plus(Rotation2d.k180deg);
+
+            // Compute the shooter's position in field coordinates by rotating the
+            // configured shooter transform into the robot frame and adding to the
+            // robot translation. Then compute the angle from shooter -> target and
+            // use that as the desired robot heading.
+            Translation2d shooterFieldTranslation = drivePose.getTranslation().plus(
+                DriveConstants.shooterTransform.getTranslation().rotateBy(drivePose.getRotation())
+            );
+            Rotation2d angleFromShooterToTarget = targetPose.getTranslation().minus(shooterFieldTranslation).getAngle();
+            Rotation2d desiredAngle = angleFromShooterToTarget;
+
             Rotation2d currentAngle = drivePose.getRotation();
             Rotation2d deltaAngle = currentAngle.minus(desiredAngle);
             double wrappedAngleDeg = MathUtil.inputModulus(deltaAngle.getDegrees(), -180.0, 180.0);
@@ -111,11 +120,45 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                     return new SwerveRequest.SwerveDriveBrake();
                 } else {
                 double rotationalRate = DriveConstants.rotationController.calculate(currentAngle.getRadians(), desiredAngle.getRadians());
-                return alignRequest.withVelocityX(controllerVelX * DriveConstants.maxSpeed) // Drive forward with negative Y (forward)
-                .withVelocityY(-controller.getLeftX() * DriveConstants.maxSpeed) // Drive left with negative X (left)
-                .withRotationalRate(rotationalRate * DriveConstants.maxAngularRate); // Use angular rate for rotation
+                return alignRequest.withVelocityX(controllerVelX * DriveConstants.maxSpeed)
+                .withVelocityY(controllerVelY * DriveConstants.maxSpeed)
+                .withRotationalRate(rotationalRate * DriveConstants.maxAngularRate);
             }
         });
+    }
+
+
+    /**
+     * Compute an alignment SwerveRequest towards the provided target pose
+     * using zero joystick input. This does not modify drivetrain state and
+     * can be called from a non-requiring command.
+     */
+    public SwerveRequest computeAlignRequest(Supplier<Pose2d> targetPoseSupplier) {
+        double controllerVelX = 0.0;
+        double controllerVelY = 0.0;
+
+        Pose2d drivePose = getState().Pose;
+        Pose2d targetPose = targetPoseSupplier.get();
+
+        // Compute shooter field translation and desired robot rotation
+        Translation2d shooterFieldTranslation = drivePose.getTranslation().plus(
+            DriveConstants.shooterTransform.getTranslation().rotateBy(drivePose.getRotation())
+        );
+        Rotation2d angleFromShooterToTarget = targetPose.getTranslation().minus(shooterFieldTranslation).getAngle();
+        Rotation2d desiredAngle = angleFromShooterToTarget;
+        Rotation2d currentAngle = drivePose.getRotation();
+        Rotation2d deltaAngle = currentAngle.minus(desiredAngle);
+        double wrappedAngleDeg = MathUtil.inputModulus(deltaAngle.getDegrees(), -180.0, 180.0);
+
+        if ((Math.abs(wrappedAngleDeg) < DriveConstants.epsilonAngleToGoal.in(Units.Degrees))
+                && Math.hypot(controllerVelX, controllerVelY) < DriveConstants.stickDeadband) {
+            return new SwerveRequest.SwerveDriveBrake();
+        } else {
+            double rotationalRate = DriveConstants.rotationController.calculate(currentAngle.getRadians(), desiredAngle.getRadians());
+            return alignRequest.withVelocityX(controllerVelX * DriveConstants.maxSpeed)
+                    .withVelocityY(controllerVelY * DriveConstants.maxSpeed)
+                    .withRotationalRate(rotationalRate * DriveConstants.maxAngularRate);
+        }
     }
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
@@ -286,6 +329,52 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         } catch (Exception ex) {
             DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", ex.getStackTrace());
         }
+
+        // Publish a compact swerve sendable to the SmartDashboard so drivers/tools can inspect module angles and velocities
+        SmartDashboard.putData("Swerve Drive", new Sendable() {
+            @Override
+            public void initSendable(SendableBuilder builder) {
+                builder.setSmartDashboardType("SwerveDrive");
+
+                builder.addDoubleProperty("Front Left Angle", () -> {
+                    var states = getState().ModuleStates;
+                    return (states != null && states.length > 0) ? states[0].angle.getRadians() : Double.NaN;
+                }, null);
+                builder.addDoubleProperty("Front Left Velocity", () -> {
+                    var states = getState().ModuleStates;
+                    return (states != null && states.length > 0) ? states[0].speedMetersPerSecond : Double.NaN;
+                }, null);
+
+                builder.addDoubleProperty("Front Right Angle", () -> {
+                    var states = getState().ModuleStates;
+                    return (states != null && states.length > 1) ? states[1].angle.getRadians() : Double.NaN;
+                }, null);
+                builder.addDoubleProperty("Front Right Velocity", () -> {
+                    var states = getState().ModuleStates;
+                    return (states != null && states.length > 1) ? states[1].speedMetersPerSecond : Double.NaN;
+                }, null);
+
+                builder.addDoubleProperty("Back Left Angle", () -> {
+                    var states = getState().ModuleStates;
+                    return (states != null && states.length > 2) ? states[2].angle.getRadians() : Double.NaN;
+                }, null);
+                builder.addDoubleProperty("Back Left Velocity", () -> {
+                    var states = getState().ModuleStates;
+                    return (states != null && states.length > 2) ? states[2].speedMetersPerSecond : Double.NaN;
+                }, null);
+
+                builder.addDoubleProperty("Back Right Angle", () -> {
+                    var states = getState().ModuleStates;
+                    return (states != null && states.length > 3) ? states[3].angle.getRadians() : Double.NaN;
+                }, null);
+                builder.addDoubleProperty("Back Right Velocity", () -> {
+                    var states = getState().ModuleStates;
+                    return (states != null && states.length > 3) ? states[3].speedMetersPerSecond : Double.NaN;
+                }, null);
+
+                builder.addDoubleProperty("Robot Angle", () -> getState().Pose.getRotation().getRadians(), null);
+            }
+        });
     }
 
     /**
@@ -329,13 +418,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
          * Otherwise, only check and apply the operator perspective if the DS is disabled.
          * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
          */
-        if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
+        // Periodic: ensure the operator perspective is applied at least once. After it's applied
+        // once during normal operation we don't need to re-apply until the robot is disabled
+        // (which may indicate a match boundary or restart scenario).
+        boolean shouldApplyPerspective = !m_hasAppliedOperatorPerspective || DriverStation.isDisabled();
+        if (shouldApplyPerspective) {
             DriverStation.getAlliance().ifPresent(allianceColor -> {
-                setOperatorPerspectiveForward(
-                    allianceColor == Alliance.Red
-                        ? kRedAlliancePerspectiveRotation
-                        : kBlueAlliancePerspectiveRotation
-                );
+                Rotation2d desiredPerspective = (allianceColor == Alliance.Red)
+                    ? kRedAlliancePerspectiveRotation
+                    : kBlueAlliancePerspectiveRotation;
+                setOperatorPerspectiveForward(desiredPerspective);
                 m_hasAppliedOperatorPerspective = true;
             });
         }
@@ -401,3 +493,4 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
     }
 }
+                                                                                                                       

@@ -22,27 +22,23 @@ public class Kicker extends SubsystemBase {
 
   private KickerState currentState = KickerState.STOP;
 
-  /** Creates a new Kicker. */
+  
   public Kicker() {
-
-  KickerMotor = new TalonFX(KickerConstants.kKickerMotorId);
+    KickerMotor = new TalonFX(KickerConstants.kKickerMotorId);
 
   KickerConfig = new TalonFXConfiguration()
-                      .withMotorOutput(new MotorOutputConfigs()
-                                            .withInverted(InvertedValue.Clockwise_Positive) //Set motor inversion based on mechanism
-                                            .withNeutralMode(NeutralModeValue.Brake))
-                      .withCurrentLimits(new CurrentLimitsConfigs()
-                                            .withSupplyCurrentLimit(KickerConstants.kKickerSupplyCurrentLimit));
+    .withMotorOutput(new MotorOutputConfigs()
+      .withInverted(InvertedValue.Clockwise_Positive)
+      .withNeutralMode(NeutralModeValue.Brake))
+        .withCurrentLimits(new CurrentLimitsConfigs()
+            .withSupplyCurrentLimit(KickerConstants.kKickerSupplyCurrentLimit));
 
-  KickerMotor.getConfigurator().apply(KickerConfig);
-
+    KickerMotor.getConfigurator().apply(KickerConfig);
   }
 
-    @Override
+  @Override
   public void periodic() {
-    // This method will be called once per scheduler run
     logMotorData();
-
   }
 
   public void setGoal(KickerState desiredState) {

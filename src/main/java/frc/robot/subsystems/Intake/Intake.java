@@ -29,6 +29,8 @@ public class Intake extends SubsystemBase {
   private MotionMagicVoltage m_motionRequest;
 
   private IntakeState currentState = IntakeState.STOP;
+  private double agitateStartTime = 0.0;
+  private boolean agitateInitialized = false;
 
   /** Creates a new intake. */
   public Intake() {
@@ -74,19 +76,15 @@ public class Intake extends SubsystemBase {
     switch (desiredState) {
       case INTAKE:
         setPivotPosition(IntakeConstants.kIntakeDownPosition);
-        rollerMotor.set(IntakeConstants.kSpeed);
+        rollerMotor.set(IntakeConstants.kRollerSpeed);
         break;
       case OUTTAKE:
         setPivotPosition(IntakeConstants.kIntakeOuttakePosition);
-        rollerMotor.set(-IntakeConstants.kSpeed);
+        rollerMotor.set(-IntakeConstants.kRollerSpeed);
         break;
       case AGITATE:
-        if (Math.abs(pivotMotor.getPosition().getValueAsDouble() - IntakeConstants.kIntakeDownPosition) <= IntakeConstants.kTolerance) {
-          setPivotPosition(IntakeConstants.kIntakeAgitatePosition);
-        } else if (Math.abs(pivotMotor.getPosition().getValueAsDouble() - IntakeConstants.kIntakeAgitatePosition) <= IntakeConstants.kTolerance) {
-          setPivotPosition(IntakeConstants.kIntakeDownPosition);
-        }
-        rollerMotor.set(IntakeConstants.kSpeed);
+        setPivotPosition(IntakeConstants.kIntakeAgitatePosition);
+        rollerMotor.set(IntakeConstants.kRollerSpeed);
         break;
       case STOP:
         pivotMotor.stopMotor();
@@ -101,11 +99,11 @@ public class Intake extends SubsystemBase {
   }
 
   public void rollerIntake() {
-    rollerMotor.set(IntakeConstants.kSpeed);
+    rollerMotor.set(IntakeConstants.kRollerSpeed);
   }
 
   public void rollerOuttake() {
-    rollerMotor.set(-IntakeConstants.kSpeed);
+    rollerMotor.set(-IntakeConstants.kRollerSpeed);
   }
 
   public void rollerStop() {
@@ -115,11 +113,11 @@ public class Intake extends SubsystemBase {
 
 
   public void pivotUp() {
-    pivotMotor.set(IntakeConstants.kSpeed);
+    pivotMotor.set(IntakeConstants.kRollerSpeed);
   }
 
   public void pivotDown() {
-    pivotMotor.set(-IntakeConstants.kSpeed);
+    pivotMotor.set(-IntakeConstants.kRollerSpeed);
   }
 
   public void pivotStop() {
@@ -140,15 +138,42 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void periodic() {
-// Handle agitate state - alternate between positions
     if (currentState == IntakeState.AGITATE) {
-      double currentPos = pivotMotor.getPosition().getValueAsDouble();
-      if (Math.abs(currentPos - IntakeConstants.kIntakeDownPosition) <= IntakeConstants.kTolerance) {
-        setPivotPosition(IntakeConstants.kIntakeAgitatePosition);
-      } else if (Math.abs(currentPos - IntakeConstants.kIntakeAgitatePosition) <= IntakeConstants.kTolerance) {
-        setPivotPosition(IntakeConstants.kIntakeDownPosition);
+      if (!agitateInitialized) {
+        agitateStartTime = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+        agitateInitialized = true;
+      }
+
+      double now = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+      double elapsed = now - agitateStartTime;
+      double progress = elapsed / IntakeConstants.kAgitateDecaySeconds;
+      progress = Math.max(0.0, Math.min(1.0, progress));
+
+      double agitateStart = IntakeConstants.kIntakeAgitateStartPos;
+      double agitateEnd = IntakeConstants.kIntakeAgitateEndPos;
+      double currentAgitatePos = agitateStart + (agitateEnd - agitateStart) * progress;
+
+      Logger.recordOutput("Subsystems/Intake/Agitate/CurrentAgitatePos", currentAgitatePos);
+
+      double currentPosition = pivotMotor.getPosition().getValueAsDouble();
+      double downPos = IntakeConstants.kIntakeDownPosition;
+      double tol = IntakeConstants.kTolerance;
+
+      boolean atDown = Math.abs(currentPosition - downPos) <= tol;
+      boolean atUpper = Math.abs(currentPosition - currentAgitatePos) <= tol;
+
+      if (atDown) {
+        setPivotPosition(currentAgitatePos);
+      } else if (atUpper) {
+        setPivotPosition(downPos);
+      }
+    } else {
+      if (agitateInitialized) {
+        agitateInitialized = false;
       }
     }
+
+    // Always log motor telemetry
     logMotorData();
   }
 
