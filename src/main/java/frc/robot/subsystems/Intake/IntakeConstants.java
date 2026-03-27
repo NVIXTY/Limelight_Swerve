@@ -34,6 +34,8 @@ public class IntakeConstants {
 
 
     public static final int kRollerMotorId = 15;
+    /** Follower roller; opposed to {@link #kRollerMotorId}. */
+    public static final int kRollerMotorFollowerId = 22;
     public static final double kRollerSupplyCurrentLimit = 55;
 
 

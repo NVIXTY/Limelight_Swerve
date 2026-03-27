@@ -2,37 +2,33 @@ package frc.robot.subsystems.Drive;
 
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotContainer;
 import frc.robot.util.LoggedTunableNumber;
-import org.littletonrobotics.junction.Logger;
-import edu.wpi.first.networktables.NetworkTableInstance;
 
+/** Aim helpers: virtual target poses + driver align commands. */
 public class AutoAim {
     private final CommandSwerveDrivetrain drive;
     private final RobotContainer robotContainer;
 
-    // Virtual lead tuning map moved here from DriveConstants so auto-align
-    // logic lives in Superstructure and DriveConstants remains purely constants.
-    private static InterpolatingDoubleTreeMap kVirtualLeadMap = new InterpolatingDoubleTreeMap();
+    private static final InterpolatingDoubleTreeMap kVirtualLeadMap = new InterpolatingDoubleTreeMap();
     private static final LoggedTunableNumber kLead0 = new LoggedTunableNumber("Drive/VirtualLead/0.0", 0.0, true);
     private static final LoggedTunableNumber kLead1 = new LoggedTunableNumber("Drive/VirtualLead/1.0", -1.4, true);
     private static final LoggedTunableNumber kLead2 = new LoggedTunableNumber("Drive/VirtualLead/2.0", -2.0, true);
     private static final LoggedTunableNumber kLead3 = new LoggedTunableNumber("Drive/VirtualLead/3.0", -2.8, true);
     private static final LoggedTunableNumber kLead4 = new LoggedTunableNumber("Drive/VirtualLead/4.0", -2.7, true);
 
-    /**
-     * Helper to compute the applied virtual lead for the current chassis speeds.
-     * Both hub and ferry virtual methods call this so they use the exact tuned
-     * values.
-     */
     private static double getAppliedVirtualLead(ChassisSpeeds speeds) {
+        // dashboard wins if someone typed a value
         double l0 = SmartDashboard.getNumber("Drive/VirtualLead/0.0", kLead0.get());
         double l1 = SmartDashboard.getNumber("Drive/VirtualLead/1.0", kLead1.get());
         double l2 = SmartDashboard.getNumber("Drive/VirtualLead/2.0", kLead2.get());
@@ -56,73 +52,45 @@ public class AutoAim {
         return lead;
     }
 
-    public static Pose2d getVirtualHubPose(Pose2d robotPose, ChassisSpeeds speeds) {
+    /** Extra NT for AdvantageKit / logging (ferry still uses this; hub pose also on Pose/hubVirtualPose). */
+    private static void publishVirtualPoseNt(String ntSuffix, Translation2d trans, Pose2d referencePose) {
+        var nt = NetworkTableInstance.getDefault();
+        String p = "AdvantageKit/Drive/" + ntSuffix;
+        nt.getEntry(p + "/PoseX").setDouble(trans.getX());
+        nt.getEntry(p + "/PoseY").setDouble(trans.getY());
+        nt.getEntry(p + "/PoseHeadingDeg").setDouble(referencePose.getRotation().getDegrees());
+    }
+
+    private static Pose2d virtualPoseWithLead(
+            Pose2d robotPose, ChassisSpeeds speeds, Pose2d basePose, String ntSuffix) {
         double vx = speeds.vxMetersPerSecond;
         double vy = speeds.vyMetersPerSecond;
         double speed = Math.hypot(vx, vy);
         double lead = getAppliedVirtualLead(speeds);
 
         if (speed <= 1e-6 || lead == 0.0) {
-            return DriveConstants.getHubPose();
+            return basePose;
         }
 
         Translation2d robotRel = new Translation2d(vx, vy);
         Translation2d fieldRel = robotRel.rotateBy(robotPose.getRotation());
         Translation2d direction = fieldRel.div(speed);
 
-        Translation2d hubTrans = DriveConstants.getHubPose().getTranslation().plus(direction.times(lead));
-        var nt = NetworkTableInstance.getDefault();
-        nt.getEntry("AdvantageKit/Drive/VirtualHub/PoseX").setDouble(hubTrans.getX());
-        nt.getEntry("AdvantageKit/Drive/VirtualHub/PoseY").setDouble(hubTrans.getY());
-        nt.getEntry("AdvantageKit/Drive/VirtualHub/PoseHeadingDeg").setDouble(DriveConstants.getHubPose().getRotation().getDegrees());
+        Translation2d resultTrans = basePose.getTranslation().plus(direction.times(lead));
+        publishVirtualPoseNt(ntSuffix, resultTrans, basePose);
+        return new Pose2d(resultTrans, basePose.getRotation());
+    }
 
-        return new Pose2d(hubTrans, DriveConstants.getHubPose().getRotation());
+    public static Pose2d getVirtualHubPose(Pose2d robotPose, ChassisSpeeds speeds) {
+        return virtualPoseWithLead(robotPose, speeds, DriveConstants.getHubPose(), "VirtualHub");
     }
 
     public static Pose2d getVirtualLeftFerryPose(Pose2d robotPose, ChassisSpeeds speeds) {
-        double vx = speeds.vxMetersPerSecond;
-        double vy = speeds.vyMetersPerSecond;
-        double speed = Math.hypot(vx, vy);
-        double lead = getAppliedVirtualLead(speeds);
-
-        if (speed <= 1e-6 || lead == 0.0) {
-            return DriveConstants.getLeftFerryPose();
-        }
-
-        Translation2d robotRel = new Translation2d(vx, vy);
-        Translation2d fieldRel = robotRel.rotateBy(robotPose.getRotation());
-        Translation2d direction = fieldRel.div(speed);
-
-        Translation2d ferryTrans = DriveConstants.getLeftFerryPose().getTranslation().plus(direction.times(lead));
-        var nt = NetworkTableInstance.getDefault();
-        nt.getEntry("AdvantageKit/Drive/VirtualLeftFerry/PoseX").setDouble(ferryTrans.getX());
-        nt.getEntry("AdvantageKit/Drive/VirtualLeftFerry/PoseY").setDouble(ferryTrans.getY());
-        nt.getEntry("AdvantageKit/Drive/VirtualLeftFerry/PoseHeadingDeg").setDouble(DriveConstants.getLeftFerryPose().getRotation().getDegrees());
-
-        return new Pose2d(ferryTrans, DriveConstants.getLeftFerryPose().getRotation());
+        return virtualPoseWithLead(robotPose, speeds, DriveConstants.getLeftFerryPose(), "VirtualLeftFerry");
     }
 
     public static Pose2d getVirtualRightFerryPose(Pose2d robotPose, ChassisSpeeds speeds) {
-        double vx = speeds.vxMetersPerSecond;
-        double vy = speeds.vyMetersPerSecond;
-        double speed = Math.hypot(vx, vy);
-        double lead = getAppliedVirtualLead(speeds);
-
-        if (speed <= 1e-6 || lead == 0.0) {
-            return DriveConstants.getRightFerryPose();
-        }
-
-        Translation2d robotRel = new Translation2d(vx, vy);
-        Translation2d fieldRel = robotRel.rotateBy(robotPose.getRotation());
-        Translation2d direction = fieldRel.div(speed);
-
-        Translation2d ferryTrans = DriveConstants.getRightFerryPose().getTranslation().plus(direction.times(lead));
-        var nt = NetworkTableInstance.getDefault();
-        nt.getEntry("AdvantageKit/Drive/VirtualRightFerry/PoseX").setDouble(ferryTrans.getX());
-        nt.getEntry("AdvantageKit/Drive/VirtualRightFerry/PoseY").setDouble(ferryTrans.getY());
-        nt.getEntry("AdvantageKit/Drive/VirtualRightFerry/PoseHeadingDeg").setDouble(DriveConstants.getRightFerryPose().getRotation().getDegrees());
-
-        return new Pose2d(ferryTrans, DriveConstants.getRightFerryPose().getRotation());
+        return virtualPoseWithLead(robotPose, speeds, DriveConstants.getRightFerryPose(), "VirtualRightFerry");
     }
 
     public AutoAim(CommandSwerveDrivetrain drive, RobotContainer robotContainer) {
@@ -131,9 +99,7 @@ public class AutoAim {
     }
 
     private Command prepShot(Supplier<Pose2d> targetPose, boolean isHub) {
-        return Commands.parallel(
-                drive.alignDrive(robotContainer.driver, targetPose, isHub)
-        );
+        return Commands.parallel(drive.alignDrive(robotContainer.driver, targetPose, isHub));
     }
 
     public Command prepHubShot() {

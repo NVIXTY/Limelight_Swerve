@@ -4,10 +4,12 @@
 
 package frc.robot.subsystems.Shooter;
 
-public enum ShooterState{
-  HUB,
-  LEFT_FERRY,
-  RIGHT_FERRY,
-  IDLE,
-  STOP
+public enum ShooterState {
+    HUB,
+    LEFT_FERRY,
+    RIGHT_FERRY,
+    IDLE,
+    /** Reverse shooter while outtaking (see RobotContainer outtake). */
+    OUTSHOOT,
+    STOP
 }

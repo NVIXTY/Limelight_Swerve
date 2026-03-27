@@ -17,50 +17,49 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Indexer extends SubsystemBase {
 
-  private TalonFX indexerMotor;
-  private TalonFXConfiguration indexerConfig;
+    private final TalonFX indexerMotor;
+    private final TalonFXConfiguration indexerConfig;
 
-  private IndexerState currentState = IndexerState.STOP;
+    private IndexerState currentState = IndexerState.STOP;
 
-  
-  public Indexer() {
-    indexerMotor = new TalonFX(IndexerConstants.kIndexerMotorId);
+    public Indexer() {
+        indexerMotor = new TalonFX(IndexerConstants.kIndexerMotorId);
 
-    indexerConfig = new TalonFXConfiguration()
-    .withMotorOutput(new MotorOutputConfigs()
-      .withInverted(InvertedValue.Clockwise_Positive)
-      .withNeutralMode(NeutralModeValue.Brake))
-        .withCurrentLimits(new CurrentLimitsConfigs()
-            .withSupplyCurrentLimit(IndexerConstants.kIndexerSupplyCurrentLimit));
+        indexerConfig = new TalonFXConfiguration()
+            .withMotorOutput(new MotorOutputConfigs()
+                .withInverted(InvertedValue.Clockwise_Positive)
+                .withNeutralMode(NeutralModeValue.Brake))
+            .withCurrentLimits(new CurrentLimitsConfigs()
+                .withSupplyCurrentLimit(IndexerConstants.kIndexerSupplyCurrentLimit));
 
-    indexerMotor.getConfigurator().apply(indexerConfig);
-  }
-
-  @Override
-  public void periodic() {
-    logMotorData();
-  }
-
-  public void setGoal(IndexerState desiredState) {
-    currentState = desiredState;
-    switch (desiredState) {
-      case INDEX:
-        indexerMotor.set(IndexerConstants.kIndexerInSpeed);
-        break;
-      case OUTDEX:
-        indexerMotor.set(IndexerConstants.kIndexerOutSpeed);
-        break;
-      case STOP:
-        indexerMotor.stopMotor();
-        break;
+        indexerMotor.getConfigurator().apply(indexerConfig);
     }
-  }
 
-  private void logMotorData(){
-    Logger.recordOutput("Subsystems/Indexer/IndexerState", currentState.name());
-    Logger.recordOutput("Subsystems/Indexer/Basic/indexerMotorSpeed", indexerMotor.get());
-    Logger.recordOutput("Subsystems/Indexer/Basic/indexerMotorSupplyCurrent", indexerMotor.getSupplyCurrent().getValueAsDouble());
-    Logger.recordOutput("Subsystems/Indexer/Basic/indexerMotorStatorCurrent", indexerMotor.getStatorCurrent().getValueAsDouble());
-    Logger.recordOutput("Subsystems/Indexer/Basic/indexerMotorVoltage", indexerMotor.getMotorVoltage().getValueAsDouble());
-  }
+    @Override
+    public void periodic() {
+        logMotorData();
+    }
+
+    public void setGoal(IndexerState desiredState) {
+        currentState = desiredState;
+        switch (desiredState) {
+            case INDEX:
+                indexerMotor.set(IndexerConstants.kIndexerInSpeed);
+                break;
+            case OUTDEX:
+                indexerMotor.set(IndexerConstants.kIndexerOutSpeed);
+                break;
+            case STOP:
+                indexerMotor.stopMotor();
+                break;
+        }
+    }
+
+    private void logMotorData() {
+        Logger.recordOutput("Subsystems/Indexer/IndexerState", currentState.name());
+        Logger.recordOutput("Subsystems/Indexer/Basic/indexerMotorSpeed", indexerMotor.get());
+        Logger.recordOutput("Subsystems/Indexer/Basic/indexerMotorSupplyCurrent", indexerMotor.getSupplyCurrent().getValueAsDouble());
+        Logger.recordOutput("Subsystems/Indexer/Basic/indexerMotorStatorCurrent", indexerMotor.getStatorCurrent().getValueAsDouble());
+        Logger.recordOutput("Subsystems/Indexer/Basic/indexerMotorVoltage", indexerMotor.getMotorVoltage().getValueAsDouble());
+    }
 }

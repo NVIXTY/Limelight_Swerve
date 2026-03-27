@@ -16,7 +16,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
 
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.math.MathUtil;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -53,10 +52,6 @@ public class RobotContainer {
         .withDeadband(MaxSpeed * 0.1)
         .withRotationalDeadband(MaxAngularRate * 0.1)
         .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    private final SwerveRequest.RobotCentric ChildSafteyMode = new SwerveRequest.RobotCentric() // to make sure jonas doesnt run wild 
-        .withDeadband(MaxSpeed * 0.02)
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -71,7 +66,7 @@ public class RobotContainer {
     public final Indexer indexer = new Indexer();
     public final Shooter shooter = new Shooter(drivetrain);
     public final Hood hood = new Hood(drivetrain);
-    private final AutoAim superstructure = new AutoAim(drivetrain, this);
+    private final AutoAim autoAim = new AutoAim(drivetrain, this);
     
     // Auto
     private final SendableChooser<Command> autoChooser;
@@ -84,8 +79,9 @@ public class RobotContainer {
         autoChooser = AutoBuilder.buildAutoChooser("Tests");
         SmartDashboard.putData("Auto Mode", autoChooser);
 
-        // Default align trigger duration (seconds) shown on dashboard
         SmartDashboard.putNumber("Align/TriggerSeconds", 0.25);
+        // Telemetry only paints hub virtual pose on /Pose when this is true (see Telemetry)
+        SmartDashboard.putBoolean("Pose/PublishHubVirtualPose", false);
 
         configureBindings();
         CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
@@ -109,27 +105,13 @@ public class RobotContainer {
         NamedCommands.registerCommand("Stop Index", indexer.runOnce(() -> indexer.setGoal(IndexerState.STOP)));
         // KICKER
         NamedCommands.registerCommand("Kick", kicker.runOnce(() -> kicker.setGoal(KickerState.KICK)));
+        NamedCommands.registerCommand(
+            "Kick Until Resistance", kicker.runOnce(() -> kicker.setGoal(KickerState.KICK_UNTIL_RESISTANCE)));
         NamedCommands.registerCommand("Stop Kick", kicker.runOnce(() -> kicker.setGoal(KickerState.STOP)));
-        // DRIVEBASE: PathPlanner events cannot require the drive subsystem.
-        // Register an event command that records the desired alignment to run
-        // after the path finishes (so it can safely require the drivetrain).
+        // PP event can't require drive — stash align for after the path
         NamedCommands.registerCommand("Align Hub", Commands.runOnce(() -> {
-            // Trigger the hub alignment for a short, tunable duration when the
-            // PathPlanner event fires. This attempts to schedule the command
-            // immediately; if it cannot (due to requirements), we record the
-            // supplier so it will run after the path finishes.
-            // Record the requiring supplier for execution after the path finishes.
-            Supplier<Command> supplier = () -> superstructure.prepHubShot();
-
-            // Schedule a small non-requiring marker so the event is visible during
-            // the path (does not require the drivetrain and won't interrupt it).
+            Supplier<Command> supplier = () -> autoAim.prepHubShot();
             double pulse = SmartDashboard.getNumber("Align/TriggerSeconds", 0.25);
-            // Create a non-requiring soft-align that computes a SwerveRequest and
-            // applies it via setControl so it can run concurrently with the path
-            // without taking drivetrain command ownership.
-            // Create a purely-visual, non-requiring marker command that sets a
-            // dashboard flag for the duration of the event. This avoids altering
-            // drivetrain outputs during the path (which caused the spinning).
             Command marker = Commands.sequence(
                 Commands.runOnce(() -> SmartDashboard.putBoolean("Align/EventActive", true)),
                 Commands.waitSeconds(pulse),
@@ -137,55 +119,51 @@ public class RobotContainer {
             );
             try {
                 CommandScheduler.getInstance().schedule(marker);
-            } catch (Exception ex) {
-                // ignore; marker is best-effort
-            }
-
-            // Always record the requiring supplier to run after the path completes.
+            } catch (Exception ignored) {}
             m_postPathCommandSuppliers.add(supplier);
         }));
     }
 
     private void configureBindings() {
-        // Note that X is defined as forward according to WPILib convention,
-        // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-driver.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-driver.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-driver.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
+            drivetrain.applyRequest(
+                () -> drive
+                    .withVelocityX(-driver.getLeftY() * MaxSpeed)
+                    .withVelocityY(-driver.getLeftX() * MaxSpeed)
+                    .withRotationalRate(-driver.getRightX() * MaxAngularRate))
         );
 
-        // Idle while the robot is disabled. This ensures the configured
-        // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
         RobotModeTriggers.disabled().whileTrue(
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
-        // HUB SHOT
-        driver.rightTrigger().whileTrue(superstructure.prepHubShot());
+        // HUB SHOT (hold RT = hub align — Telemetry uses this for Elastic hub pose)
+        driver.rightTrigger().onTrue(Commands.runOnce(() -> SmartDashboard.putBoolean("Pose/PublishHubVirtualPose", true)));
+        driver.rightTrigger().onFalse(Commands.runOnce(() -> SmartDashboard.putBoolean("Pose/PublishHubVirtualPose", false)));
+        driver.rightTrigger().onTrue(kicker.runOnce(() -> kicker.stopKickUntilResistance()));
+        driver.rightTrigger().whileTrue(autoAim.prepHubShot());
         driver.rightTrigger().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.HUB)));
         driver.rightTrigger().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
         driver.rightTrigger().onTrue(hood.runOnce(() -> hood.setGoal(HoodState.HUB)));
         driver.rightTrigger().onFalse(hood.runOnce(() -> hood.setGoal(HoodState.TRENCH)));
 
         // LEFT FERRY SHOT
-        driver.povLeft().whileTrue(superstructure.prepLeftFerryShot());
+        driver.povLeft().onTrue(kicker.runOnce(() -> kicker.stopKickUntilResistance()));
+        driver.povLeft().whileTrue(autoAim.prepLeftFerryShot());
         driver.povLeft().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.LEFT_FERRY)));
         driver.povLeft().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
         driver.povLeft().onTrue(hood.runOnce(() -> hood.setGoal(HoodState.FERRY)));
         driver.povLeft().onFalse(hood.runOnce(() -> hood.setGoal(HoodState.TRENCH)));
 
         // RIGHT FERRY SHOT
-        driver.povRight().whileTrue(superstructure.prepRightFerryShot());
+        driver.povRight().onTrue(kicker.runOnce(() -> kicker.stopKickUntilResistance()));
+        driver.povRight().whileTrue(autoAim.prepRightFerryShot());
         driver.povRight().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.RIGHT_FERRY)));
         driver.povRight().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
         driver.povRight().onTrue(hood.runOnce(() -> hood.setGoal(HoodState.FERRY)));
         driver.povRight().onFalse(hood.runOnce(() -> hood.setGoal(HoodState.TRENCH)));
 
-        // INDEX TO SHOOTER
+        // INDEX TO SHOOTER (overrides kick-until-resistance if you mash Y)
         driver.y().onTrue(kicker.runOnce(() -> kicker.setGoal(KickerState.KICK)));
         driver.y().onFalse(kicker.runOnce(() -> kicker.setGoal(KickerState.STOP)));
         driver.y().onTrue(indexer.runOnce(() -> indexer.setGoal(IndexerState.INDEX)));
@@ -193,11 +171,21 @@ public class RobotContainer {
         driver.y().onTrue(intake.runOnce(() -> intake.setGoal(IntakeState.AGITATE)));
         driver.y().onFalse(intake.runOnce(() -> intake.setGoal(IntakeState.STOP)));
 
-        // INTAKE
-        driver.leftTrigger().onTrue(intake.runOnce(() -> intake.setGoal(IntakeState.INTAKE)));
-        driver.leftTrigger().onFalse(intake.runOnce(() -> intake.setGoal(IntakeState.STOP)));
+        // INTAKE (+ kick until resistance unless already aiming hub / ferry)
+        driver.leftTrigger().onTrue(Commands.runOnce(() -> {
+            intake.setGoal(IntakeState.INTAKE);
+            if (!isDriverShootingInput()) {
+                kicker.setGoal(KickerState.KICK_UNTIL_RESISTANCE);
+            }
+        }));
+        driver.leftTrigger().onFalse(Commands.runOnce(() -> {
+            intake.setGoal(IntakeState.STOP);
+            kicker.stopKickUntilResistance();
+        }));
 
         // OUTTAKE
+        driver.b().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.OUTSHOOT)));
+        driver.b().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
         driver.b().onTrue(intake.runOnce(() -> intake.setGoal(IntakeState.OUTTAKE)));
         driver.b().onFalse(intake.runOnce(() -> intake.setGoal(IntakeState.STOP)));
         driver.b().onTrue(indexer.runOnce(() -> indexer.setGoal(IndexerState.OUTDEX)));
@@ -213,8 +201,6 @@ public class RobotContainer {
         driver.start().onTrue(Commands.runOnce(() ->
             drivetrain.resetPose(new Pose2d(drivetrain.getState().Pose.getTranslation(), Rotation2d.kZero))));
 
-        // TESTING
-
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
@@ -223,13 +209,10 @@ public class RobotContainer {
         if (base == null) {
             return null;
         }
-        // Wrap the auto command so that once it finishes we schedule any
-        // post-path commands that were recorded by PathPlanner event commands.
         try {
             return Commands.sequence(
                 base,
                 Commands.runOnce(() -> {
-                    // Schedule each recorded command (they may require the drive).
                     for (var supplier : m_postPathCommandSuppliers) {
                         Command cmd = supplier.get();
                         if (cmd != null) {
@@ -240,13 +223,17 @@ public class RobotContainer {
                 })
             );
         } catch (Exception ex) {
-            // If composition fails (some WPILib compose-time validation), fall back to
-            // returning the base command. Log the exception and return base so the
-            // robot doesn't crash during autonomousInit.
             System.err.println("Failed to compose autonomous sequence: " + ex);
             ex.printStackTrace();
             Logger.recordOutput("Autonomous/ComposeError", ex.toString());
             return base;
         }
+    }
+
+    /** True if driver is using hub or ferry shot — don’t start kick-until-resistance while intaking. */
+    private boolean isDriverShootingInput() {
+        return driver.getRightTriggerAxis() > 0.2
+            || driver.povLeft().getAsBoolean()
+            || driver.povRight().getAsBoolean();
     }
 }

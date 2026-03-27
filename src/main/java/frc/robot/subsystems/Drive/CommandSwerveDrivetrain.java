@@ -106,37 +106,36 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return applyRequest(() -> {
             double controllerVelX = -controller.getLeftY();
             double controllerVelY = -controller.getLeftX();
-
-            Pose2d drivePose = getState().Pose;
-            Pose2d targetPose = targetPoseSupplier.get();
-
-            // Compute the shooter's position in field coordinates by rotating the
-            // configured shooter transform into the robot frame and adding to the
-            // robot translation. Then compute the angle from shooter -> target and
-            // use that as the desired robot heading.
-            Translation2d shooterFieldTranslation = drivePose.getTranslation().plus(
-                DriveConstants.shooterTransform.getTranslation().rotateBy(drivePose.getRotation())
-            );
-            Rotation2d angleFromShooterToTarget = targetPose.getTranslation().minus(shooterFieldTranslation).getAngle();
-            Rotation2d desiredAngle = angleFromShooterToTarget;
-
-            Rotation2d currentAngle = drivePose.getRotation();
-            Rotation2d deltaAngle = currentAngle.minus(desiredAngle);
-            double wrappedAngleDeg = MathUtil.inputModulus(deltaAngle.getDegrees(), -180.0, 180.0);
-
-            if (
-                (Math.abs(wrappedAngleDeg) < DriveConstants.epsilonAngleToGoal.in(Units.Degrees)) // if facing goal already
-                && Math.hypot(controllerVelX, controllerVelY) < DriveConstants.stickDeadband) {
-                    return new SwerveRequest.SwerveDriveBrake();
-                } else {
-                double rotationalRate = DriveConstants.rotationController.calculate(currentAngle.getRadians(), desiredAngle.getRadians());
-                // While aligning, optionally reduce lateral (X/Y) speed for smoother aiming when aligning to the hub.
-                double lateralScale = isHub ? DriveConstants.getHubLateralScale() : 1.0;
-                return alignRequest.withVelocityX(controllerVelX * DriveConstants.maxSpeed * lateralScale)
-                .withVelocityY(controllerVelY * DriveConstants.maxSpeed * lateralScale)
-                .withRotationalRate(rotationalRate * DriveConstants.maxAngularRate);
-            }
+            return alignmentRequestFor(
+                getState().Pose, targetPoseSupplier.get(), controllerVelX, controllerVelY, isHub);
         });
+    }
+
+    private SwerveRequest alignmentRequestFor(
+        Pose2d drivePose,
+        Pose2d targetPose,
+        double controllerVelX,
+        double controllerVelY,
+        boolean isHub) {
+        Translation2d shooterFieldTranslation = drivePose.getTranslation().plus(
+            DriveConstants.shooterTransform.getTranslation().rotateBy(drivePose.getRotation()));
+        Rotation2d desiredAngle =
+            targetPose.getTranslation().minus(shooterFieldTranslation).getAngle();
+        Rotation2d currentAngle = drivePose.getRotation();
+        Rotation2d deltaAngle = currentAngle.minus(desiredAngle);
+        double wrappedAngleDeg = MathUtil.inputModulus(deltaAngle.getDegrees(), -180.0, 180.0);
+
+        if (Math.abs(wrappedAngleDeg) < DriveConstants.epsilonAngleToGoal.in(Units.Degrees)
+                && Math.hypot(controllerVelX, controllerVelY) < DriveConstants.stickDeadband) {
+            return new SwerveRequest.SwerveDriveBrake();
+        }
+        double rotationalRate =
+            DriveConstants.rotationController.calculate(currentAngle.getRadians(), desiredAngle.getRadians());
+        double lateralScale = isHub ? DriveConstants.getHubLateralScale() : 1.0;
+        return alignRequest
+            .withVelocityX(controllerVelX * DriveConstants.maxSpeed * lateralScale)
+            .withVelocityY(controllerVelY * DriveConstants.maxSpeed * lateralScale)
+            .withRotationalRate(rotationalRate * DriveConstants.maxAngularRate);
     }
 
 
@@ -154,32 +153,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * using zero joystick input. Optionally apply hub-only lateral scaling.
      */
     public SwerveRequest computeAlignRequest(Supplier<Pose2d> targetPoseSupplier, boolean isHub) {
-        double controllerVelX = 0.0;
-        double controllerVelY = 0.0;
-
-        Pose2d drivePose = getState().Pose;
-        Pose2d targetPose = targetPoseSupplier.get();
-
-        // Compute shooter field translation and desired robot rotation
-        Translation2d shooterFieldTranslation = drivePose.getTranslation().plus(
-            DriveConstants.shooterTransform.getTranslation().rotateBy(drivePose.getRotation())
-        );
-        Rotation2d angleFromShooterToTarget = targetPose.getTranslation().minus(shooterFieldTranslation).getAngle();
-        Rotation2d desiredAngle = angleFromShooterToTarget;
-        Rotation2d currentAngle = drivePose.getRotation();
-        Rotation2d deltaAngle = currentAngle.minus(desiredAngle);
-        double wrappedAngleDeg = MathUtil.inputModulus(deltaAngle.getDegrees(), -180.0, 180.0);
-
-        if ((Math.abs(wrappedAngleDeg) < DriveConstants.epsilonAngleToGoal.in(Units.Degrees))
-                && Math.hypot(controllerVelX, controllerVelY) < DriveConstants.stickDeadband) {
-            return new SwerveRequest.SwerveDriveBrake();
-        } else {
-        double rotationalRate = DriveConstants.rotationController.calculate(currentAngle.getRadians(), desiredAngle.getRadians());
-        double lateralScale = isHub ? DriveConstants.getHubLateralScale() : 1.0; // only reduce lateral speed when aligning to the hub
-        return alignRequest.withVelocityX(controllerVelX * DriveConstants.maxSpeed * lateralScale)
-            .withVelocityY(controllerVelY * DriveConstants.maxSpeed * lateralScale)
-            .withRotationalRate(rotationalRate * DriveConstants.maxAngularRate);
-        }
+        return alignmentRequestFor(getState().Pose, targetPoseSupplier.get(), 0.0, 0.0, isHub);
     }
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
@@ -514,4 +488,3 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
     }
 }
-                                                                                                                       

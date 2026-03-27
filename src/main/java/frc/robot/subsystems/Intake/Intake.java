@@ -12,11 +12,14 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Intake extends SubsystemBase {
@@ -24,6 +27,7 @@ public class Intake extends SubsystemBase {
   private TalonFXConfiguration pivotConfig;
 
   private TalonFX rollerMotor;
+  private TalonFX rollerMotorFollower;
   private TalonFXConfiguration rollerConfig;
 
   private MotionMagicVoltage m_motionRequest;
@@ -69,6 +73,11 @@ public class Intake extends SubsystemBase {
                                               .withSupplyCurrentLimit(IntakeConstants.kRollerSupplyCurrentLimit));
 
     rollerMotor.getConfigurator().apply(rollerConfig);
+
+    rollerMotorFollower = new TalonFX(IntakeConstants.kRollerMotorFollowerId);
+    rollerMotorFollower.setControl(
+        new Follower(IntakeConstants.kRollerMotorId, MotorAlignmentValue.Opposed));
+    rollerMotorFollower.getConfigurator().apply(rollerConfig);
   }
 
   public void setGoal(IntakeState desiredState) {
@@ -89,10 +98,12 @@ public class Intake extends SubsystemBase {
       case STOP:
         pivotMotor.stopMotor();
         rollerMotor.stopMotor();
+        rollerMotorFollower.stopMotor();
         break;
       case STOW:
         setPivotPosition(IntakeConstants.kIntakeUpPosition);
         rollerMotor.stopMotor();
+        rollerMotorFollower.stopMotor();
         break;
       
     }
@@ -108,6 +119,7 @@ public class Intake extends SubsystemBase {
 
   public void rollerStop() {
     rollerMotor.stopMotor();
+    rollerMotorFollower.stopMotor();
   }
 
 
@@ -140,11 +152,11 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     if (currentState == IntakeState.AGITATE) {
       if (!agitateInitialized) {
-        agitateStartTime = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+        agitateStartTime = Timer.getFPGATimestamp();
         agitateInitialized = true;
       }
 
-      double now = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+      double now = Timer.getFPGATimestamp();
       double elapsed = now - agitateStartTime;
       double progress = elapsed / IntakeConstants.kAgitateDecaySeconds;
       progress = Math.max(0.0, Math.min(1.0, progress));
@@ -198,5 +210,10 @@ public class Intake extends SubsystemBase {
     Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorSupplyCurrent", rollerMotor.getSupplyCurrent().getValueAsDouble());
     Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorStatorCurrent", rollerMotor.getStatorCurrent().getValueAsDouble());
     Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorVoltage", rollerMotor.getMotorVoltage().getValueAsDouble());
+
+    Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorSpeed", rollerMotorFollower.get());
+    Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorSupplyCurrent", rollerMotorFollower.getSupplyCurrent().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorStatorCurrent", rollerMotorFollower.getStatorCurrent().getValueAsDouble());
+    Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorVoltage", rollerMotorFollower.getMotorVoltage().getValueAsDouble());
 }
 }
