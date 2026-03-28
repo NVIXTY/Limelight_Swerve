@@ -11,5 +11,7 @@ public enum ShooterState {
     IDLE,
     /** Reverse shooter while outtaking (see RobotContainer outtake). */
     OUTSHOOT,
+    /** Lower reverse speed paired with kicker slow kick during intake. */
+    OUTSHOOT_SLOW,
     STOP
 }

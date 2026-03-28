@@ -13,6 +13,7 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -107,8 +108,10 @@ public class Shooter extends SubsystemBase {
                 case RIGHT_FERRY:
                 case IDLE:
                     setGoal(currentState);
-                    break;
+                    shooterMotor1.setControl(new CoastOut());
+                    shooterMotor2.setControl(new CoastOut());
                 case OUTSHOOT:
+                case OUTSHOOT_SLOW:
                 case STOP:
                 default:
                     break;
@@ -150,6 +153,9 @@ public class Shooter extends SubsystemBase {
                 break;
             case OUTSHOOT:
                 setShooterVelocity(ShooterConstants.kOutshootVelocity);
+                break;
+            case OUTSHOOT_SLOW:
+                setShooterVelocity(ShooterConstants.kOutshootSlowVelocity);
                 break;
             case STOP:
                 shooterMotor1.stopMotor();

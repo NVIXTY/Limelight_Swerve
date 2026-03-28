@@ -7,7 +7,7 @@ package frc.robot.subsystems.Kicker;
 public enum KickerState {
     KICK,
     OUTKICK,
-    /** Run in until stator current indicates load (see KickerConstants). */
-    KICK_UNTIL_RESISTANCE,
+    /** Intake assist: low duty cycle forward; reverse unwind on exit (see KickerConstants). */
+    SLOW_KICK,
     STOP
 }

@@ -26,6 +26,14 @@ public class AutoAim {
     private static final LoggedTunableNumber kLead2 = new LoggedTunableNumber("Drive/VirtualLead/2.0", -2.0, true);
     private static final LoggedTunableNumber kLead3 = new LoggedTunableNumber("Drive/VirtualLead/3.0", -2.8, true);
     private static final LoggedTunableNumber kLead4 = new LoggedTunableNumber("Drive/VirtualLead/4.0", -2.7, true);
+    // Distance multipliers: scale the base (1m) virtual lead for different
+    // distance buckets (1..6 meters). Defaults are 1.0 (no change).
+    private static final LoggedTunableNumber kDistMult1 = new LoggedTunableNumber("Drive/VirtualLead/DistanceMultiplier/1.0", 1.0, true);
+    private static final LoggedTunableNumber kDistMult2 = new LoggedTunableNumber("Drive/VirtualLead/DistanceMultiplier/2.0", 1.2, true);
+    private static final LoggedTunableNumber kDistMult3 = new LoggedTunableNumber("Drive/VirtualLead/DistanceMultiplier/3.0", 1.4, true);
+    private static final LoggedTunableNumber kDistMult4 = new LoggedTunableNumber("Drive/VirtualLead/DistanceMultiplier/4.0", 1.6, true);
+    private static final LoggedTunableNumber kDistMult5 = new LoggedTunableNumber("Drive/VirtualLead/DistanceMultiplier/5.0", 1.8, true);
+    private static final LoggedTunableNumber kDistMult6 = new LoggedTunableNumber("Drive/VirtualLead/DistanceMultiplier/6.0", 2.0, true);
 
     private static double getAppliedVirtualLead(ChassisSpeeds speeds) {
         // dashboard wins if someone typed a value
@@ -66,7 +74,7 @@ public class AutoAim {
         double vx = speeds.vxMetersPerSecond;
         double vy = speeds.vyMetersPerSecond;
         double speed = Math.hypot(vx, vy);
-        double lead = getAppliedVirtualLead(speeds);
+    double lead = getAppliedVirtualLead(speeds);
 
         if (speed <= 1e-6 || lead == 0.0) {
             return basePose;
@@ -82,7 +90,46 @@ public class AutoAim {
     }
 
     public static Pose2d getVirtualHubPose(Pose2d robotPose, ChassisSpeeds speeds) {
-        return virtualPoseWithLead(robotPose, speeds, DriveConstants.getHubPose(), "VirtualHub");
+        // Determine distance to hub (meters) and pick a multiplier for this bucket.
+        double distance = robotPose.getTranslation().getDistance(DriveConstants.getHubPose().getTranslation());
+        int bucket = (int)Math.round(distance);
+        if (bucket < 1) bucket = 1;
+        if (bucket > 6) bucket = 6;
+
+        double mult;
+        switch (bucket) {
+            case 1: mult = SmartDashboard.getNumber("Drive/VirtualLead/DistanceMultiplier/1.0", kDistMult1.get()); break;
+            case 2: mult = SmartDashboard.getNumber("Drive/VirtualLead/DistanceMultiplier/2.0", kDistMult2.get()); break;
+            case 3: mult = SmartDashboard.getNumber("Drive/VirtualLead/DistanceMultiplier/3.0", kDistMult3.get()); break;
+            case 4: mult = SmartDashboard.getNumber("Drive/VirtualLead/DistanceMultiplier/4.0", kDistMult4.get()); break;
+            case 5: mult = SmartDashboard.getNumber("Drive/VirtualLead/DistanceMultiplier/5.0", kDistMult5.get()); break;
+            default: mult = SmartDashboard.getNumber("Drive/VirtualLead/DistanceMultiplier/6.0", kDistMult6.get()); break;
+        }
+
+        // Base lead from speed map, then scale by distance multiplier to approximate
+        // different lead behavior per distance bucket.
+        double baseLead = getAppliedVirtualLead(speeds);
+        double finalLead = baseLead * mult;
+
+        Logger.recordOutput("Drive/VirtualLead/DistanceBucket", bucket);
+        Logger.recordOutput("Drive/VirtualLead/DistanceMultiplier", mult);
+
+        // Reuse the same logic as virtualPoseWithLead but with the scaled lead.
+        double vx = speeds.vxMetersPerSecond;
+        double vy = speeds.vyMetersPerSecond;
+        double speed = Math.hypot(vx, vy);
+
+        if (speed <= 1e-6 || finalLead == 0.0) {
+            return DriveConstants.getHubPose();
+        }
+
+        Translation2d robotRel = new Translation2d(vx, vy);
+        Translation2d fieldRel = robotRel.rotateBy(robotPose.getRotation());
+        Translation2d direction = fieldRel.div(speed);
+
+        Translation2d resultTrans = DriveConstants.getHubPose().getTranslation().plus(direction.times(finalLead));
+        publishVirtualPoseNt("VirtualHub", resultTrans, DriveConstants.getHubPose());
+        return new Pose2d(resultTrans, DriveConstants.getHubPose().getRotation());
     }
 
     public static Pose2d getVirtualLeftFerryPose(Pose2d robotPose, ChassisSpeeds speeds) {

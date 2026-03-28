@@ -44,7 +44,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 public class RobotContainer {
-    private final double MaxSpeed = .75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    private final double MaxSpeed = .9 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
     private final double MaxAngularRate = RotationsPerSecond.of(1).in(RadiansPerSecond);
 
     // Drive requests
@@ -105,8 +105,6 @@ public class RobotContainer {
         NamedCommands.registerCommand("Stop Index", indexer.runOnce(() -> indexer.setGoal(IndexerState.STOP)));
         // KICKER
         NamedCommands.registerCommand("Kick", kicker.runOnce(() -> kicker.setGoal(KickerState.KICK)));
-        NamedCommands.registerCommand(
-            "Kick Until Resistance", kicker.runOnce(() -> kicker.setGoal(KickerState.KICK_UNTIL_RESISTANCE)));
         NamedCommands.registerCommand("Stop Kick", kicker.runOnce(() -> kicker.setGoal(KickerState.STOP)));
         // PP event can't require drive — stash align for after the path
         NamedCommands.registerCommand("Align Hub", Commands.runOnce(() -> {
@@ -140,23 +138,31 @@ public class RobotContainer {
         // HUB SHOT (hold RT = hub align — Telemetry uses this for Elastic hub pose)
         driver.rightTrigger().onTrue(Commands.runOnce(() -> SmartDashboard.putBoolean("Pose/PublishHubVirtualPose", true)));
         driver.rightTrigger().onFalse(Commands.runOnce(() -> SmartDashboard.putBoolean("Pose/PublishHubVirtualPose", false)));
-        driver.rightTrigger().onTrue(kicker.runOnce(() -> kicker.stopKickUntilResistance()));
+        // If left trigger is held while pressing right trigger, cancel slow-kick/outshoot behavior.
+        driver.rightTrigger().onTrue(Commands.runOnce(() -> {
+            if (driver.getLeftTriggerAxis() > 0.2) {
+                // both triggers: intake-only; cancel slow behaviors
+                intake.setGoal(IntakeState.INTAKE);
+                kicker.cancelSlowKick();
+                shooter.setGoal(ShooterState.IDLE);
+            }
+        }));
         driver.rightTrigger().whileTrue(autoAim.prepHubShot());
         driver.rightTrigger().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.HUB)));
         driver.rightTrigger().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
         driver.rightTrigger().onTrue(hood.runOnce(() -> hood.setGoal(HoodState.HUB)));
         driver.rightTrigger().onFalse(hood.runOnce(() -> hood.setGoal(HoodState.TRENCH)));
 
-        // LEFT FERRY SHOT
-        driver.povLeft().onTrue(kicker.runOnce(() -> kicker.stopKickUntilResistance()));
+    // LEFT FERRY SHOT
+    driver.povLeft().onTrue(Commands.runOnce(() -> kicker.cancelSlowKick()));
         driver.povLeft().whileTrue(autoAim.prepLeftFerryShot());
         driver.povLeft().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.LEFT_FERRY)));
         driver.povLeft().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
         driver.povLeft().onTrue(hood.runOnce(() -> hood.setGoal(HoodState.FERRY)));
         driver.povLeft().onFalse(hood.runOnce(() -> hood.setGoal(HoodState.TRENCH)));
 
-        // RIGHT FERRY SHOT
-        driver.povRight().onTrue(kicker.runOnce(() -> kicker.stopKickUntilResistance()));
+    // RIGHT FERRY SHOT
+    driver.povRight().onTrue(Commands.runOnce(() -> kicker.cancelSlowKick()));
         driver.povRight().whileTrue(autoAim.prepRightFerryShot());
         driver.povRight().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.RIGHT_FERRY)));
         driver.povRight().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
@@ -171,17 +177,28 @@ public class RobotContainer {
         driver.y().onTrue(intake.runOnce(() -> intake.setGoal(IntakeState.AGITATE)));
         driver.y().onFalse(intake.runOnce(() -> intake.setGoal(IntakeState.STOP)));
 
-        // INTAKE (+ kick until resistance unless already aiming hub / ferry)
+        // INTAKE behaviour: left trigger alone => intake + slowkick + slow outshoot.
+        // Left+Right together => intake only (no slowkick/no slowoutshoot).
         driver.leftTrigger().onTrue(Commands.runOnce(() -> {
             intake.setGoal(IntakeState.INTAKE);
-            if (!isDriverShootingInput()) {
-                kicker.setGoal(KickerState.KICK_UNTIL_RESISTANCE);
+            if (driver.getRightTriggerAxis() > 0.2) {
+                // both triggers: intake only
+                kicker.cancelSlowKick();
+                shooter.setGoal(ShooterState.IDLE);
+            } else {
+                // left only: intake + slowkick + slow outshoot
+                kicker.setGoal(KickerState.SLOW_KICK);
+                shooter.setGoal(ShooterState.OUTSHOOT_SLOW);
             }
         }));
         driver.leftTrigger().onFalse(Commands.runOnce(() -> {
             intake.setGoal(IntakeState.STOP);
-            kicker.stopKickUntilResistance();
+            // releasing left trigger should release slow kick (begin reverse unwind)
+            kicker.releaseSlowKick();
+            shooter.setGoal(ShooterState.IDLE);
         }));
+        driver.leftTrigger().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.OUTSHOOT)));
+        driver.leftTrigger().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
 
         // OUTTAKE
         driver.b().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.OUTSHOOT)));

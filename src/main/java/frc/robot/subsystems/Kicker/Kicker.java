@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Kicker extends SubsystemBase {
 
-    private enum KurPhase {
+    private enum SlowKickPhase {
         NONE,
         FORWARD,
         REVERSE
@@ -32,10 +32,7 @@ public class Kicker extends SubsystemBase {
     private final TalonFXConfiguration kickerConfig;
 
     private KickerState currentState = KickerState.STOP;
-    private KurPhase kurPhase = KurPhase.NONE;
-
-    private double kickUntilResistanceT0 = 0.0;
-    private int resistanceDebounce = 0;
+    private SlowKickPhase slowKickPhase = SlowKickPhase.NONE;
 
     private double reverseT0 = 0.0;
     private double reverseTargetRot = 0.0;
@@ -64,97 +61,87 @@ public class Kicker extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (currentState == KickerState.KICK_UNTIL_RESISTANCE && kurPhase == KurPhase.FORWARD) {
-            double now = Timer.getFPGATimestamp();
-            double elapsed = now - kickUntilResistanceT0;
-
-            if (elapsed >= KickerConstants.kKickUntilResistanceSpinUpSeconds) {
-                double stator = kickerMotor.getStatorCurrent().getValueAsDouble();
-                Logger.recordOutput("Subsystems/Kicker/KickUntilResistance/StatorA", stator);
-
-                if (stator >= KickerConstants.kKickUntilResistanceStatorThresholdAmps) {
-                    resistanceDebounce++;
-                    if (resistanceDebounce >= KickerConstants.kKickUntilResistanceDebounceLoops) {
-                        Logger.recordOutput("Subsystems/Kicker/KickUntilResistance/EndedReason", "resistance");
-                        beginReverseAfterResistance();
-                    }
-                } else {
-                    resistanceDebounce = 0;
-                }
-            }
-
-            if (elapsed >= KickerConstants.kKickUntilResistanceTimeoutSeconds) {
-                Logger.recordOutput("Subsystems/Kicker/KickUntilResistance/EndedReason", "timeout");
-                finishKickUntilResistance();
-            }
-        } else if (currentState == KickerState.KICK_UNTIL_RESISTANCE && kurPhase == KurPhase.REVERSE) {
+        if (currentState == KickerState.SLOW_KICK && slowKickPhase == SlowKickPhase.REVERSE) {
             double pos = kickerMotor.getPosition().getValueAsDouble();
             double err = Math.abs(pos - reverseTargetRot);
-            Logger.recordOutput("Subsystems/Kicker/KickUntilResistance/ReverseErr", err);
+            Logger.recordOutput("Subsystems/Kicker/SlowKick/ReverseErr", err);
 
             if (err <= KickerConstants.kReversePositionToleranceRot) {
-                Logger.recordOutput("Subsystems/Kicker/KickUntilResistance/EndedReason", "reverse_done");
-                finishKickUntilResistance();
+                Logger.recordOutput("Subsystems/Kicker/SlowKick/EndedReason", "reverse_done");
+                finishSlowKickReverse();
             } else if (Timer.getFPGATimestamp() - reverseT0 >= KickerConstants.kReverseTimeoutSeconds) {
-                Logger.recordOutput("Subsystems/Kicker/KickUntilResistance/EndedReason", "reverse_timeout");
-                finishKickUntilResistance();
+                Logger.recordOutput("Subsystems/Kicker/SlowKick/EndedReason", "reverse_timeout");
+                finishSlowKickReverse();
             }
         }
 
         logMotorData();
     }
 
-    private void beginReverseAfterResistance() {
-        kurPhase = KurPhase.REVERSE;
+    private void beginReverseAfterSlowKick() {
+        slowKickPhase = SlowKickPhase.REVERSE;
         reverseT0 = Timer.getFPGATimestamp();
         double pos = kickerMotor.getPosition().getValueAsDouble();
-        // Opposite of intake kick: unwind by N rotor rotations (flip sign on robot if it runs wrong way)
-        reverseTargetRot = pos - KickerConstants.kAfterResistanceReverseRotations;
+        reverseTargetRot = pos - KickerConstants.kSlowKickReverseRotations;
         m_reverseRequest = new MotionMagicVoltage(reverseTargetRot).withSlot(0);
         kickerMotor.setControl(m_reverseRequest);
-        Logger.recordOutput("Subsystems/Kicker/KickUntilResistance/ReverseTargetRot", reverseTargetRot);
+        Logger.recordOutput("Subsystems/Kicker/SlowKick/ReverseTargetRot", reverseTargetRot);
     }
 
-    private void finishKickUntilResistance() {
-        kurPhase = KurPhase.NONE;
-        resistanceDebounce = 0;
+    private void finishSlowKickReverse() {
+        slowKickPhase = SlowKickPhase.NONE;
         currentState = KickerState.STOP;
         kickerMotor.stopMotor();
     }
 
-    /** Stops kick-until-resistance (forward or reverse). Safe to call anytime. */
-    public void stopKickUntilResistance() {
-        if (currentState != KickerState.KICK_UNTIL_RESISTANCE) {
+    /**
+     * Release slow kick: if still feeding forward, run reverse unwind; if already reversing, no-op.
+     */
+    public void releaseSlowKick() {
+        if (currentState != KickerState.SLOW_KICK) {
             return;
         }
-        Logger.recordOutput("Subsystems/Kicker/KickUntilResistance/EndedReason", "cancelled");
-        finishKickUntilResistance();
+        if (slowKickPhase == SlowKickPhase.FORWARD) {
+            beginReverseAfterSlowKick();
+        }
+    }
+
+    /** Abort slow kick (forward or reverse) immediately — e.g. hub/ferry takes over. */
+    public void cancelSlowKick() {
+        if (currentState != KickerState.SLOW_KICK) {
+            return;
+        }
+        Logger.recordOutput("Subsystems/Kicker/SlowKick/EndedReason", "cancelled");
+        slowKickPhase = SlowKickPhase.NONE;
+        currentState = KickerState.STOP;
+        kickerMotor.stopMotor();
     }
 
     public void setGoal(KickerState desiredState) {
-        if (desiredState != KickerState.KICK_UNTIL_RESISTANCE && currentState == KickerState.KICK_UNTIL_RESISTANCE) {
-            kurPhase = KurPhase.NONE;
-            resistanceDebounce = 0;
+        if (currentState == KickerState.SLOW_KICK && desiredState != KickerState.SLOW_KICK) {
+            if (desiredState == KickerState.STOP) {
+                releaseSlowKick();
+                return;
+            }
+            cancelSlowKick();
         }
 
         currentState = desiredState;
         switch (desiredState) {
             case KICK:
-                kurPhase = KurPhase.NONE;
+                slowKickPhase = SlowKickPhase.NONE;
                 kickerMotor.set(KickerConstants.kKickerInSpeed);
                 break;
             case OUTKICK:
-                kurPhase = KurPhase.NONE;
+                slowKickPhase = SlowKickPhase.NONE;
                 kickerMotor.set(KickerConstants.kKickerOutSpeed);
                 break;
-            case KICK_UNTIL_RESISTANCE:
-                kurPhase = KurPhase.FORWARD;
-                resistanceDebounce = 0;
-                kickUntilResistanceT0 = Timer.getFPGATimestamp();
-                kickerMotor.set(KickerConstants.kKickerInSpeed);
+            case SLOW_KICK:
+                slowKickPhase = SlowKickPhase.FORWARD;
+                kickerMotor.set(KickerConstants.kKickerInSpeed * KickerConstants.kKickerSlowKickMultiplier);
                 break;
             case STOP:
-                kurPhase = KurPhase.NONE;
+                slowKickPhase = SlowKickPhase.NONE;
                 kickerMotor.stopMotor();
                 break;
         }
@@ -162,7 +149,7 @@ public class Kicker extends SubsystemBase {
 
     private void logMotorData() {
         Logger.recordOutput("Subsystems/Kicker/KickerState", currentState.name());
-        Logger.recordOutput("Subsystems/Kicker/KurPhase", kurPhase.name());
+        Logger.recordOutput("Subsystems/Kicker/SlowKickPhase", slowKickPhase.name());
         Logger.recordOutput("Subsystems/Kicker/Basic/KickerMotorSpeed", kickerMotor.get());
         Logger.recordOutput("Subsystems/Kicker/Basic/KickerMotorSupplyCurrent", kickerMotor.getSupplyCurrent().getValueAsDouble());
         Logger.recordOutput("Subsystems/Kicker/Basic/KickerMotorStatorCurrent", kickerMotor.getStatorCurrent().getValueAsDouble());

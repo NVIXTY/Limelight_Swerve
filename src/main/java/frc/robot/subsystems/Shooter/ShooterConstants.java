@@ -37,7 +37,10 @@ public class ShooterConstants {
     public static final double kPrepSpeed = 5;
 
     /** Wheel RPS when outtaking (sign = reverse). Tune on robot. */
-    public static final double kOutshootVelocity = -35.0;
+    public static final double kOutshootVelocity = -10.0;
+
+    /** Softer reverse for intake + slow kicker; tune with kOutshootVelocity. */
+    public static final double kOutshootSlowVelocity = -5.0;
 
     public static final double kShooterShuttleSpeed = 50;
 

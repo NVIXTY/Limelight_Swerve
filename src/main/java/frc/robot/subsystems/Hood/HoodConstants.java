@@ -14,35 +14,38 @@ public class HoodConstants {
     public static final double kI = 0;
     public static final double kD = 4;
 
-    public static final double kCruiseVelocity = 80;
-    public static final double kAcceleration = 70;
+    public static final double kCruiseVelocity = 80 * 30; // converted to motor-rotations units
+    public static final double kAcceleration = 70 * 30; // converted to motor-rotations units
 
-    public static final double kTolerance = 0.000001;
+    public static final double kTolerance = 0.000001 * 30;
 
     public static final double kSupplyCurrentLimit = 35;
 
-    public static final double kSensorToMechanismRatio = 30;
+    public static final double kSensorToMechanismRatio = 30.0;
 
     public static final double kSpeed = 0.05;
 
     public static final double kTrenchPosition = 0.0;
-    public static final double kHubPosition = 0.07;
-    public static final double kFerryPosition = 0.122;
+    public static final double kHubPosition = 0.07; // for right now
+    public static final double kFerryPosition = 0.122; // for right now
 
     public static InterpolatingDoubleTreeMap kHoodMap = new InterpolatingDoubleTreeMap();
 
-    private static final LoggedTunableNumber kHood0 = new LoggedTunableNumber("Hood/Field/0.0", kTrenchPosition, true);
-    private static final LoggedTunableNumber kHood125 = new LoggedTunableNumber("Hood/Field/1.25", 0.02, true);
-    private static final LoggedTunableNumber kHood25 = new LoggedTunableNumber("Hood/Field/2.5", 0.04, true);
-    private static final LoggedTunableNumber kHood375 = new LoggedTunableNumber("Hood/Field/3.75", 0.06, true);
+    private static final LoggedTunableNumber kHood1 = new LoggedTunableNumber("Hood/Field/1.0", 0.03, true);
+    private static final LoggedTunableNumber kHood2 = new LoggedTunableNumber("Hood/Field/2.0", 0.04, true);
+    private static final LoggedTunableNumber kHood3 = new LoggedTunableNumber("Hood/Field/3.0", 0.05, true);
+    private static final LoggedTunableNumber kHood4 = new LoggedTunableNumber("Hood/Field/4.0", 0.06, true);
     private static final LoggedTunableNumber kHood5 = new LoggedTunableNumber("Hood/Field/5.0", 0.065, true);
     private static final LoggedTunableNumber kHood6 = new LoggedTunableNumber("Hood/Field/6.0", kHubPosition, true);
 
     public static double getHoodPosition(double distance) {
-        kHoodMap.put(0.0, kHood0.get());
-        kHoodMap.put(1.25, kHood125.get());
-        kHoodMap.put(2.5, kHood25.get());
-        kHoodMap.put(3.75, kHood375.get());
+        // Ensure a 0-meter entry exists so very-close distances map to a safe
+        // zero-rotation hood position.
+        kHoodMap.put(0.0, 0.0);
+        kHoodMap.put(1.0, kHood1.get());
+        kHoodMap.put(2.0, kHood2.get());
+        kHoodMap.put(3.0, kHood3.get());
+        kHoodMap.put(4.0, kHood4.get());
         kHoodMap.put(5.0, kHood5.get());
         kHoodMap.put(6.0, kHood6.get());
 
