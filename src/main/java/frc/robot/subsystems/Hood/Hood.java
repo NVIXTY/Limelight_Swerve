@@ -17,10 +17,9 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Drive.AutoAim;
-import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Drive.DriveConstants;
+import frc.robot.util.ShotCalculator;
 
 public class Hood extends SubsystemBase {
     private final TalonFX hoodMotor;
@@ -29,10 +28,8 @@ public class Hood extends SubsystemBase {
     private MotionMagicVoltage m_motionRequest;
 
     private HoodState currentState = HoodState.STOP;
-    private final CommandSwerveDrivetrain m_swerveSubsystem;
 
-    public Hood(CommandSwerveDrivetrain swerveSubsystem) {
-        this.m_swerveSubsystem = swerveSubsystem;
+    public Hood() {
         hoodMotor = new TalonFX(HoodConstants.kHoodMotorId);
         hoodConfig = new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs()
@@ -58,10 +55,7 @@ public class Hood extends SubsystemBase {
     }
 
     private double hubDistanceMeters() {
-        var state = m_swerveSubsystem.getState();
-        Translation2d robotT = state.Pose.getTranslation();
-        Translation2d hubT = AutoAim.getVirtualHubPose(state.Pose, state.Speeds).getTranslation();
-        return robotT.getDistance(hubT);
+        return ShotCalculator.getInstance().getCompensatedDistance(DriveConstants.getHubPose());
     }
 
     public void setGoal(HoodState desiredState) {
@@ -71,11 +65,7 @@ public class Hood extends SubsystemBase {
                 sethoodPosition(HoodConstants.kTrenchPosition);
                 break;
             case HUB:
-                if (m_swerveSubsystem != null) {
-                    sethoodPosition(HoodConstants.getHoodPosition(hubDistanceMeters()));
-                } else {
-                    sethoodPosition(HoodConstants.kHubPosition);
-                }
+                sethoodPosition(HoodConstants.getHoodPosition(hubDistanceMeters()));
                 break;
             case FERRY:
                 sethoodPosition(HoodConstants.kFerryPosition);
@@ -115,9 +105,7 @@ public class Hood extends SubsystemBase {
         try {
             switch (currentState) {
                 case HUB:
-                    if (m_swerveSubsystem != null) {
-                        sethoodPosition(HoodConstants.getHoodPosition(hubDistanceMeters()));
-                    }
+                    sethoodPosition(HoodConstants.getHoodPosition(hubDistanceMeters()));
                     break;
                 case FERRY:
                     sethoodPosition(HoodConstants.kFerryPosition);

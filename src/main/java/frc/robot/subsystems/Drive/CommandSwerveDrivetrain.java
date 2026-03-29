@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.subsystems.Drive.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.util.ShotCalculator;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -79,17 +80,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public Distance getShotDistance() {
-        // Use virtual hub pose (accounts for robot motion) when computing shot distance
-        var virtualHub = AutoAim.getVirtualHubPose(getState().Pose, getState().Speeds);
-        return getShotDistance(virtualHub.getTranslation());
+        // Use ShotCalculator's compensated distance which accounts for robot motion and air time
+        return Units.Meters.of(ShotCalculator.getInstance().getCompensatedDistance(DriveConstants.getHubPose()));
     }
 
     public Distance getLeftFerryDistance() {
-        return getShotDistance(AutoAim.getVirtualLeftFerryPose(getState().Pose, getState().Speeds).getTranslation());
+        return Units.Meters.of(ShotCalculator.getInstance().getCompensatedDistance(DriveConstants.getLeftFerryPose()));
     }
 
     public Distance getRightFerryDistance() {
-        return getShotDistance(AutoAim.getVirtualRightFerryPose(getState().Pose, getState().Speeds).getTranslation());
+        return Units.Meters.of(ShotCalculator.getInstance().getCompensatedDistance(DriveConstants.getRightFerryPose()));
     }
 
     public Command alignDrive(CommandXboxController controller, Supplier<Pose2d> targetPoseSupplier) {
@@ -486,5 +486,20 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     @Override
     public Optional<Pose2d> samplePoseAt(double timestampSeconds) {
         return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
+    }
+
+    public ChassisSpeeds getAsFieldRelativeSpeeds() {
+        ChassisSpeeds robotRelSpeeds = getState().Speeds;
+        return ChassisSpeeds.fromRobotRelativeSpeeds(
+            robotRelSpeeds.vxMetersPerSecond,
+            robotRelSpeeds.vyMetersPerSecond,
+            robotRelSpeeds.omegaRadiansPerSecond,
+            getState().Pose.getRotation()
+        );
+    }
+
+    public Translation2d getFieldRelativeVelocity() {
+        ChassisSpeeds fieldRelSpeeds = getAsFieldRelativeSpeeds();
+        return new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
     }
 }

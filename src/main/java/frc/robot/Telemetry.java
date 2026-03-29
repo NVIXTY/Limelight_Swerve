@@ -120,7 +120,7 @@ public class Telemetry {
         boolean showHubVirt = SmartDashboard.getBoolean("Pose/PublishHubVirtualPose", false);
         hubVirtualPoseActive.set(showHubVirt);
         if (showHubVirt) {
-            Pose2d hubVirt = AutoAim.getVirtualHubPose(state.Pose, state.Speeds);
+            Pose2d hubVirt = AutoAim.getVirtualHubPose();
             hubVirtualPoseFieldType.set("Field2d");
             hubVirtualTriplet[0] = hubVirt.getX();
             hubVirtualTriplet[1] = hubVirt.getY();

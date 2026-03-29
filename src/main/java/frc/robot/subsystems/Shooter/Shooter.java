@@ -21,13 +21,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Drive.AutoAim;
-import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Drive.DriveConstants;
+import frc.robot.util.ShotCalculator;
 
 public class Shooter extends SubsystemBase {
     private final TalonFX shooterMotor1;
@@ -37,8 +36,6 @@ public class Shooter extends SubsystemBase {
     private VelocityVoltage m_velocityRequest;
 
     private ShooterState currentState = ShooterState.STOP;
-
-    private final CommandSwerveDrivetrain m_swerveSubsystem;
 
     private double m_hubDistance = 0.0;
     private double m_leftFerryDistance = 0.0;
@@ -50,8 +47,7 @@ public class Shooter extends SubsystemBase {
     private double m_lastLogTime = 0.0;
     private static final double kLogPeriod = 0.10;
 
-    public Shooter(CommandSwerveDrivetrain swerveSubsystem) {
-        this.m_swerveSubsystem = swerveSubsystem;
+    public Shooter() {
         shooterMotor1 = new TalonFX(ShooterConstants.kShooterMotorId1);
         shooterMotor2 = new TalonFX(ShooterConstants.kShooterMotorId2);
 
@@ -106,10 +102,12 @@ public class Shooter extends SubsystemBase {
                 case HUB:
                 case LEFT_FERRY:
                 case RIGHT_FERRY:
-                case IDLE:
                     setGoal(currentState);
+                    break;
+                case IDLE:
                     shooterMotor1.setControl(new CoastOut());
                     shooterMotor2.setControl(new CoastOut());
+                    break;
                 case OUTSHOOT:
                 case OUTSHOOT_SLOW:
                 case STOP:
@@ -122,13 +120,10 @@ public class Shooter extends SubsystemBase {
 
     public void setGoal(ShooterState desiredState) {
         currentState = desiredState;
-        var pose = m_swerveSubsystem.getState().Pose;
-        var speeds = m_swerveSubsystem.getState().Speeds;
-        Translation2d currentTranslation2d = pose.getTranslation();
+        ShotCalculator shotCalc = ShotCalculator.getInstance();
         switch (desiredState) {
             case HUB:
-                m_hubDistance = currentTranslation2d.getDistance(
-                    AutoAim.getVirtualHubPose(pose, speeds).getTranslation());
+                m_hubDistance = shotCalc.getCompensatedDistance(DriveConstants.getHubPose());
                 setShooterVelocity(ShooterConstants.getShooterHubVelocity(m_hubDistance));
                 try {
                     NetworkTableInstance.getDefault()
@@ -139,13 +134,11 @@ public class Shooter extends SubsystemBase {
                 }
                 break;
             case LEFT_FERRY:
-                m_leftFerryDistance = currentTranslation2d.getDistance(
-                    AutoAim.getVirtualLeftFerryPose(pose, speeds).getTranslation());
+                m_leftFerryDistance = shotCalc.getCompensatedDistance(DriveConstants.getLeftFerryPose());
                 setShooterVelocity(ShooterConstants.getShooterFerryVelocity(m_leftFerryDistance));
                 break;
             case RIGHT_FERRY:
-                m_rightFerryDistance = currentTranslation2d.getDistance(
-                    AutoAim.getVirtualRightFerryPose(pose, speeds).getTranslation());
+                m_rightFerryDistance = shotCalc.getCompensatedDistance(DriveConstants.getRightFerryPose());
                 setShooterVelocity(ShooterConstants.getShooterFerryVelocity(m_rightFerryDistance));
                 break;
             case IDLE:

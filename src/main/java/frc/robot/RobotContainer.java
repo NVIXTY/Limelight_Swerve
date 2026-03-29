@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 import frc.robot.subsystems.Drive.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Drive.AutoAim;
 import frc.robot.subsystems.Drive.TunerConstants;
+import frc.robot.util.ShotCalculator;
 import frc.robot.subsystems.Hood.Hood;
 import frc.robot.subsystems.Hood.HoodState;
 import frc.robot.subsystems.Indexer.Indexer;
@@ -64,8 +65,8 @@ public class RobotContainer {
     public final Intake intake = new Intake();
     public final Kicker kicker = new Kicker();
     public final Indexer indexer = new Indexer();
-    public final Shooter shooter = new Shooter(drivetrain);
-    public final Hood hood = new Hood(drivetrain);
+    public final Shooter shooter = new Shooter();
+    public final Hood hood = new Hood();
     private final AutoAim autoAim = new AutoAim(drivetrain, this);
     
     // Auto
@@ -74,6 +75,9 @@ public class RobotContainer {
     private final List<Supplier<Command>> m_postPathCommandSuppliers = new ArrayList<>();
 
     public RobotContainer() {
+        // Initialize the shot calculator with the drivetrain for SOTM compensation
+        ShotCalculator.getInstance().init(drivetrain);
+
         configureNamedCommands();
 
         autoChooser = AutoBuilder.buildAutoChooser("Tests");
