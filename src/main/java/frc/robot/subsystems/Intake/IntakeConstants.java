@@ -26,7 +26,7 @@ public class IntakeConstants {
     public static final double kRollerSpeed = -.6;
 
     public static final double kIntakeUpPosition = 0.0;
-    public static final double kIntakeAgitateStartPos = 0.12;
+    public static final double kIntakeAgitateStartPos = 0.15;
     public static final double kIntakeAgitateEndPos = 0.05;
     public static final double kAgitateDecaySeconds = 5.5;
     public static final double kIntakeDownPosition = 0.17; // 0.17 is the max down position

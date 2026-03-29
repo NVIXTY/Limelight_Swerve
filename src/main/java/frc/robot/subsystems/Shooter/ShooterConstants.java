@@ -16,13 +16,13 @@ public class ShooterConstants {
     public static final int kStatorCurrentLimit = 120;
 
     /**
-     * Rotor velocity Kalman filter time constant (seconds). Smaller = less lag in velocity
+     * Motor velocity Kalman filter time constant (seconds). Smaller = less lag in velocity
      * feedback (faster-looking recovery), larger = smoother/noisier tradeoff. Tune with
      * kP/kD if you see jitter or sluggish response.
      */
-    public static final double kVelocityFilterTimeSec = 0.002;
+    public static final double kVelocityFilterTimeSec = 0.004;
 
-    // Velocity loop: tuned for snappy recovery (was “high accel” 3× kP vs old base).
+    // Velocity loop: tuned for snappy recovery (was "high accel" 3x kP vs old base).
     public static final double kP = 0.15;
     public static final double kI = 0.0;
     public static final double kD = 0.004;
@@ -47,22 +47,22 @@ public class ShooterConstants {
     public static InterpolatingDoubleTreeMap kShooterHubMap = new InterpolatingDoubleTreeMap();
 
     private static final LoggedTunableNumber kshooter15 = new LoggedTunableNumber("Shooter/Hub/1.5", 45, true);
-    private static final LoggedTunableNumber kshooter175 = new LoggedTunableNumber("Shooter/Hub/1.75", 45, true);
-    private static final LoggedTunableNumber kshooter20 = new LoggedTunableNumber("Shooter/Hub/2.0", 47, true);
-    private static final LoggedTunableNumber kshooter225 = new LoggedTunableNumber("Shooter/Hub/2.25", 47, true);
+    private static final LoggedTunableNumber kshooter175 = new LoggedTunableNumber("Shooter/Hub/1.75", 43, true);
+    private static final LoggedTunableNumber kshooter20 = new LoggedTunableNumber("Shooter/Hub/2.0", 44.5, true);
+    private static final LoggedTunableNumber kshooter225 = new LoggedTunableNumber("Shooter/Hub/2.25", 45, true);
     private static final LoggedTunableNumber kshooter25 = new LoggedTunableNumber("Shooter/Hub/2.5", 46, true);
-    private static final LoggedTunableNumber kshooter275 = new LoggedTunableNumber("Shooter/Hub/2.75", 49, true);
-    private static final LoggedTunableNumber kshooter30 = new LoggedTunableNumber("Shooter/Hub/3.0", 50, true);
-    private static final LoggedTunableNumber kshooter325 = new LoggedTunableNumber("Shooter/Hub/3.25", 51, true);
-    private static final LoggedTunableNumber kshooter35 = new LoggedTunableNumber("Shooter/Hub/3.5", 50, true);
-    private static final LoggedTunableNumber kshooter375 = new LoggedTunableNumber("Shooter/Hub/3.75", 53, true);
-    private static final LoggedTunableNumber kshooter40 = new LoggedTunableNumber("Shooter/Hub/4.0", 53, true);
-    private static final LoggedTunableNumber kshooter425 = new LoggedTunableNumber("Shooter/Hub/4.25", 54.5, true);
-    private static final LoggedTunableNumber kshooter45 = new LoggedTunableNumber("Shooter/Hub/4.5", 55.5, true);
-    private static final LoggedTunableNumber kshooter475 = new LoggedTunableNumber("Shooter/Hub/4.75", 56.5, true);
-    private static final LoggedTunableNumber kshooter50 = new LoggedTunableNumber("Shooter/Hub/5.0", 56.5, true);
-    private static final LoggedTunableNumber kshooter55 = new LoggedTunableNumber("Shooter/Hub/5.5", 60.5, true);
-    private static final LoggedTunableNumber kshooter60 = new LoggedTunableNumber("Shooter/Hub/6.0", 63.5, true);
+    private static final LoggedTunableNumber kshooter275 = new LoggedTunableNumber("Shooter/Hub/2.75", 48, true);
+    private static final LoggedTunableNumber kshooter30 = new LoggedTunableNumber("Shooter/Hub/3.0", 47.5, true);
+    private static final LoggedTunableNumber kshooter325 = new LoggedTunableNumber("Shooter/Hub/3.25", 48, true);
+    private static final LoggedTunableNumber kshooter35 = new LoggedTunableNumber("Shooter/Hub/3.5", 49.2, true);
+    private static final LoggedTunableNumber kshooter375 = new LoggedTunableNumber("Shooter/Hub/3.75", 51, true);
+    private static final LoggedTunableNumber kshooter40 = new LoggedTunableNumber("Shooter/Hub/4.0", 51.5, true);
+    private static final LoggedTunableNumber kshooter425 = new LoggedTunableNumber("Shooter/Hub/4.25", 52.2, true);
+    private static final LoggedTunableNumber kshooter45 = new LoggedTunableNumber("Shooter/Hub/4.5", 53.5, true);
+    private static final LoggedTunableNumber kshooter475 = new LoggedTunableNumber("Shooter/Hub/4.75", 54.7, true);
+    private static final LoggedTunableNumber kshooter50 = new LoggedTunableNumber("Shooter/Hub/5.0", 55.9, true);
+    private static final LoggedTunableNumber kshooter55 = new LoggedTunableNumber("Shooter/Hub/5.5", 58.85, true);
+    private static final LoggedTunableNumber kshooter60 = new LoggedTunableNumber("Shooter/Hub/6.0", 60, true);
 
     public static InterpolatingDoubleTreeMap kShooterFerryMap = new InterpolatingDoubleTreeMap();
 

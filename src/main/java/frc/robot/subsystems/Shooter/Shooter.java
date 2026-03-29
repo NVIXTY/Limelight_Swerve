@@ -68,7 +68,7 @@ public class Shooter extends SubsystemBase {
                 .withSupplyCurrentLimit(ShooterConstants.kSupplyCurrentLimit)
                 .withSupplyCurrentLimitEnable(true)
                 .withStatorCurrentLimit(Amps.of(ShooterConstants.kStatorCurrentLimit))
-                .withStatorCurrentLimitEnable(true));
+                .withStatorCurrentLimitEnable(false));
         shooterMotor1.getConfigurator().apply(shooterConfig);
 
         shooterMotor2.setControl(new Follower(ShooterConstants.kShooterMotorId1, MotorAlignmentValue.Opposed));

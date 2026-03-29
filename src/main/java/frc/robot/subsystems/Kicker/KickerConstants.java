@@ -9,11 +9,11 @@ public class KickerConstants {
 
     public static final int kKickerSupplyCurrentLimit = 30;
 
-    public static final double kKickerInSpeed = 0.39;
+    public static final double kKickerInSpeed = 0.25;
     public static final double kKickerOutSpeed = -kKickerInSpeed;
 
     /** Slow-kick multiplier: slow kick = kKickerInSpeed * multiplier. Tune on robot. */
-    public static final double kKickerSlowKickMultiplier = 0.56;
+    public static final double kKickerSlowKickMultiplier = 0.2;
 
     /** Rotor rotations to unwind after releasing slow kick (same direction as old resistance reverse). */
     public static final double kSlowKickReverseRotations = 0.09;

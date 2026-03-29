@@ -27,7 +27,7 @@ public class Intake extends SubsystemBase {
   private TalonFXConfiguration pivotConfig;
 
   private TalonFX rollerMotor;
-  private TalonFX rollerMotorFollower;
+  // private TalonFX rollerMotorFollower;
   private TalonFXConfiguration rollerConfig;
 
   private MotionMagicVoltage m_motionRequest;
@@ -74,10 +74,10 @@ public class Intake extends SubsystemBase {
 
     rollerMotor.getConfigurator().apply(rollerConfig);
 
-    rollerMotorFollower = new TalonFX(IntakeConstants.kRollerMotorFollowerId);
-    rollerMotorFollower.setControl(
-        new Follower(IntakeConstants.kRollerMotorId, MotorAlignmentValue.Opposed));
-    rollerMotorFollower.getConfigurator().apply(rollerConfig);
+    // rollerMotorFollower = new TalonFX(IntakeConstants.kRollerMotorFollowerId);
+    // rollerMotorFollower.setControl(
+    //     new Follower(IntakeConstants.kRollerMotorId, MotorAlignmentValue.Opposed));
+    // rollerMotorFollower.getConfigurator().apply(rollerConfig);
   }
 
   public void setGoal(IntakeState desiredState) {
@@ -98,12 +98,12 @@ public class Intake extends SubsystemBase {
       case STOP:
         pivotMotor.stopMotor();
         rollerMotor.stopMotor();
-        rollerMotorFollower.stopMotor();
+        // rollerMotorFollower.stopMotor();
         break;
       case STOW:
         setPivotPosition(IntakeConstants.kIntakeUpPosition);
         rollerMotor.stopMotor();
-        rollerMotorFollower.stopMotor();
+        // rollerMotorFollower.stopMotor();
         break;
       
     }
@@ -119,7 +119,7 @@ public class Intake extends SubsystemBase {
 
   public void rollerStop() {
     rollerMotor.stopMotor();
-    rollerMotorFollower.stopMotor();
+    // rollerMotorFollower.stopMotor();
   }
 
 
@@ -211,9 +211,9 @@ public class Intake extends SubsystemBase {
     Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorStatorCurrent", rollerMotor.getStatorCurrent().getValueAsDouble());
     Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorVoltage", rollerMotor.getMotorVoltage().getValueAsDouble());
 
-    Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorSpeed", rollerMotorFollower.get());
-    Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorSupplyCurrent", rollerMotorFollower.getSupplyCurrent().getValueAsDouble());
-    Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorStatorCurrent", rollerMotorFollower.getStatorCurrent().getValueAsDouble());
-    Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorVoltage", rollerMotorFollower.getMotorVoltage().getValueAsDouble());
+    // Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorSpeed", rollerMotorFollower.get());
+    // Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorSupplyCurrent", rollerMotorFollower.getSupplyCurrent().getValueAsDouble());
+    // Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorStatorCurrent", rollerMotorFollower.getStatorCurrent().getValueAsDouble());
+    // Logger.recordOutput("Subsystems/Intake/Basic/RollerFollower/RollerFollowerMotorVoltage", rollerMotorFollower.getMotorVoltage().getValueAsDouble());
 }
 }

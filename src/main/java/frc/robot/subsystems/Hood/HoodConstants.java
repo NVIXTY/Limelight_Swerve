@@ -26,21 +26,20 @@ public class HoodConstants {
     public static final double kSpeed = 0.05;
 
     public static final double kTrenchPosition = 0.0;
-    public static final double kHubPosition = 0.07; // for right now
-    public static final double kFerryPosition = 0.122; // for right now
+    public static final double kHubPosition = 0.065; 
+    public static final double kFerryPosition = 0.128; 
 
     public static InterpolatingDoubleTreeMap kHoodMap = new InterpolatingDoubleTreeMap();
 
-    private static final LoggedTunableNumber kHood1 = new LoggedTunableNumber("Hood/Field/1.0", 0.03, true);
-    private static final LoggedTunableNumber kHood2 = new LoggedTunableNumber("Hood/Field/2.0", 0.04, true);
-    private static final LoggedTunableNumber kHood3 = new LoggedTunableNumber("Hood/Field/3.0", 0.05, true);
+    private static final LoggedTunableNumber kHood1 = new LoggedTunableNumber("Hood/Field/1.0", 0.0, true);
+    private static final LoggedTunableNumber kHood2 = new LoggedTunableNumber("Hood/Field/2.0", 0.035, true);
+    private static final LoggedTunableNumber kHood3 = new LoggedTunableNumber("Hood/Field/3.0", 0.045, true);
     private static final LoggedTunableNumber kHood4 = new LoggedTunableNumber("Hood/Field/4.0", 0.06, true);
     private static final LoggedTunableNumber kHood5 = new LoggedTunableNumber("Hood/Field/5.0", 0.065, true);
     private static final LoggedTunableNumber kHood6 = new LoggedTunableNumber("Hood/Field/6.0", kHubPosition, true);
 
     public static double getHoodPosition(double distance) {
-        // Ensure a 0-meter entry exists so very-close distances map to a safe
-        // zero-rotation hood position.
+        // Ensure a 0-meter entry exists so sotm works well moving forwards
         kHoodMap.put(0.0, 0.0);
         kHoodMap.put(1.0, kHood1.get());
         kHoodMap.put(2.0, kHood2.get());
