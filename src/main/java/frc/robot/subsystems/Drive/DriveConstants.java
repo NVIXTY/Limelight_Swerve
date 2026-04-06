@@ -41,7 +41,7 @@ public class DriveConstants {
     public static final Angle epsilonAngleToGoal = Degrees.of(0);
 
     private static final LoggedTunableNumber kHubLateralScale =
-        new LoggedTunableNumber("Drive/Hub/LateralScale", 0.2, true);
+        new LoggedTunableNumber("Drive/Hub/LateralScale", 0.225, true);
 
     public static double getHubLateralScale() {
         return SmartDashboard.getNumber("Drive/Hub/LateralScale", kHubLateralScale.get());
@@ -70,12 +70,12 @@ public class DriveConstants {
     // Air time lookup table for SOTM compensation - maps distance (meters) to air time (seconds)
     // Tune these values based on your shooter's projectile speed
     private static final InterpolatingDoubleTreeMap kAirTimeMap = new InterpolatingDoubleTreeMap();
-    private static final LoggedTunableNumber kAirTime1m = new LoggedTunableNumber("Drive/SOTM/AirTime/1m", 1, true);
-    private static final LoggedTunableNumber kAirTime2m = new LoggedTunableNumber("Drive/SOTM/AirTime/2m", 0.3, true);
-    private static final LoggedTunableNumber kAirTime3m = new LoggedTunableNumber("Drive/SOTM/AirTime/3m", 0.4, true);
-    private static final LoggedTunableNumber kAirTime4m = new LoggedTunableNumber("Drive/SOTM/AirTime/4m", 0.5, true);
-    private static final LoggedTunableNumber kAirTime5m = new LoggedTunableNumber("Drive/SOTM/AirTime/5m", 0.6, true);
-    private static final LoggedTunableNumber kAirTime6m = new LoggedTunableNumber("Drive/SOTM/AirTime/6m", 0.7, true);
+    private static final LoggedTunableNumber kAirTime1m = new LoggedTunableNumber("Drive/SOTM/AirTime/1m", 1.2, true);
+    private static final LoggedTunableNumber kAirTime2m = new LoggedTunableNumber("Drive/SOTM/AirTime/2m", 1, true);
+    private static final LoggedTunableNumber kAirTime3m = new LoggedTunableNumber("Drive/SOTM/AirTime/3m", 1.15, true);
+    private static final LoggedTunableNumber kAirTime4m = new LoggedTunableNumber("Drive/SOTM/AirTime/4m", 1.2, true);
+    private static final LoggedTunableNumber kAirTime5m = new LoggedTunableNumber("Drive/SOTM/AirTime/5m", 1.25, true);
+    private static final LoggedTunableNumber kAirTime6m = new LoggedTunableNumber("Drive/SOTM/AirTime/6m", 1.35, true);
 
     /**
      * Get air time for a given distance using interpolation map.

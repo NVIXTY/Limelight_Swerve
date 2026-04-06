@@ -10,7 +10,7 @@ import frc.robot.util.LoggedTunableNumber;
 public class HoodConstants {
     public static final int kHoodMotorId = 10;
 
-    public static final double kP = 255;
+    public static final double kP = 500;
     public static final double kI = 0;
     public static final double kD = 4;
 
@@ -27,7 +27,7 @@ public class HoodConstants {
 
     public static final double kTrenchPosition = 0.0;
     public static final double kHubPosition = 0.065; 
-    public static final double kFerryPosition = 0.128; 
+    public static final double kFerryPosition = 0.1; 
 
     public static InterpolatingDoubleTreeMap kHoodMap = new InterpolatingDoubleTreeMap();
 

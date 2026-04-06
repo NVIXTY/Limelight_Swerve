@@ -7,7 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "testing"
+            "pathName": "2S1 BETA"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 4.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "2S2 BETA"
           }
         }
       ]

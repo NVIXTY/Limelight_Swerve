@@ -72,7 +72,7 @@
         "y": 7.367767449589582
       },
       "nextControl": {
-        "x": 3.597084078711987,
+        "x": 3.597084078711988,
         "y": 7.3855456171735225
       },
       "isLocked": false,
@@ -80,11 +80,11 @@
     },
     {
       "anchor": {
-        "x": 3.62953488372093,
+        "x": 3.5646332737030413,
         "y": 7.369320214669052
       },
       "prevControl": {
-        "x": 4.627337341978324,
+        "x": 4.562435731960434,
         "y": 7.367334628030977
       },
       "nextControl": null,
@@ -208,10 +208,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -73.09484190136435
+    "rotation": -72.32669318796532
   },
   "reversed": false,
-  "folder": "Left 2 Swipe",
+  "folder": "2 Swipe Working",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 90.0

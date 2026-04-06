@@ -3,10 +3,8 @@
   "robotLength": 0.838,
   "holonomicMode": true,
   "pathFolders": [
-    "Left 2 Swipe",
-    "Right 2 Swipe",
-    "beta Left 2 Swipe",
-    "testing purposes"
+    "2 Swipe Working",
+    "2 Swipe Beta's"
   ],
   "autoFolders": [],
   "defaultMaxVel": 2.75,

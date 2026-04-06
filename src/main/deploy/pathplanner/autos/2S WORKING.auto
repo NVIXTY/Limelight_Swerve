@@ -7,31 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "BETA L2S1"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Align Hub"
+            "pathName": "2S1"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 4.5
+            "waitTime": 4.0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "BETA L2S2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Align Hub"
+            "pathName": "2S2"
           }
         }
       ]

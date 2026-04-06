@@ -14,6 +14,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.wpilibj2.command.Commands;
 
@@ -45,7 +46,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 public class RobotContainer {
-    private final double MaxSpeed = .9 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    private final double MaxSpeed = .75 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
     private final double MaxAngularRate = RotationsPerSecond.of(1).in(RadiansPerSecond);
 
     // Drive requests
@@ -70,7 +71,8 @@ public class RobotContainer {
     private final AutoAim autoAim = new AutoAim(drivetrain, this);
     
     // Auto
-    private final SendableChooser<Command> autoChooser;
+    private SendableChooser<Command> autoChooser;
+    private final SendableChooser<Boolean> flipChooser = new SendableChooser<>();
     // Commands requested by PathPlanner events that must run after the path finishes
     private final List<Supplier<Command>> m_postPathCommandSuppliers = new ArrayList<>();
 
@@ -80,7 +82,27 @@ public class RobotContainer {
 
         configureNamedCommands();
 
-        autoChooser = AutoBuilder.buildAutoChooser("Tests");
+        flipChooser.setDefaultOption("LEFT", false);
+        flipChooser.addOption("RIGHT", true);
+        SmartDashboard.putData("Field Side", flipChooser);
+
+        flipChooser.onChange((Boolean flip) -> {
+            autoChooser = AutoBuilder.buildAutoChooserWithOptionsModifier(
+                autoStream -> autoStream.map(auto -> {
+                    auto = new PathPlannerAuto(auto.getName(), flip);
+                    return auto;
+                })
+            );
+            SmartDashboard.putData("Auto Mode", autoChooser);
+        });
+
+        boolean currentFlip = flipChooser.getSelected() != null ? flipChooser.getSelected() : false;
+        autoChooser = AutoBuilder.buildAutoChooserWithOptionsModifier(
+            autoStream -> autoStream.map(auto -> {
+                auto = new PathPlannerAuto(auto.getName(), currentFlip);
+                return auto;
+            })
+        );
         SmartDashboard.putData("Auto Mode", autoChooser);
 
         SmartDashboard.putNumber("Align/TriggerSeconds", 0.25);
@@ -139,41 +161,30 @@ public class RobotContainer {
         RobotModeTriggers.disabled().whileTrue(
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
-        // HUB SHOT (hold RT = hub align — Telemetry uses this for Elastic hub pose)
-        driver.rightTrigger().onTrue(Commands.runOnce(() -> SmartDashboard.putBoolean("Pose/PublishHubVirtualPose", true)));
-        driver.rightTrigger().onFalse(Commands.runOnce(() -> SmartDashboard.putBoolean("Pose/PublishHubVirtualPose", false)));
-        // If left trigger is held while pressing right trigger, cancel slow-kick/outshoot behavior.
-        driver.rightTrigger().onTrue(Commands.runOnce(() -> {
-            if (driver.getLeftTriggerAxis() > 0.2) {
-                // both triggers: intake-only; cancel slow behaviors
-                intake.setGoal(IntakeState.INTAKE);
-                kicker.cancelSlowKick();
-                shooter.setGoal(ShooterState.IDLE);
-            }
-        }));
-        driver.rightTrigger().whileTrue(autoAim.prepHubShot());
+
+        // HUB SHOT
         driver.rightTrigger().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.HUB)));
         driver.rightTrigger().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
         driver.rightTrigger().onTrue(hood.runOnce(() -> hood.setGoal(HoodState.HUB)));
         driver.rightTrigger().onFalse(hood.runOnce(() -> hood.setGoal(HoodState.TRENCH)));
+        driver.rightTrigger().whileTrue(autoAim.prepHubShot());
 
-    // LEFT FERRY SHOT
-    driver.povLeft().onTrue(Commands.runOnce(() -> kicker.cancelSlowKick()));
+        // LEFT FERRY SHOT
+        driver.povLeft().onTrue(Commands.runOnce(() -> kicker.cancelSlowKick()));
         driver.povLeft().whileTrue(autoAim.prepLeftFerryShot());
         driver.povLeft().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.LEFT_FERRY)));
         driver.povLeft().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
         driver.povLeft().onTrue(hood.runOnce(() -> hood.setGoal(HoodState.FERRY)));
         driver.povLeft().onFalse(hood.runOnce(() -> hood.setGoal(HoodState.TRENCH)));
 
-    // RIGHT FERRY SHOT
-    driver.povRight().onTrue(Commands.runOnce(() -> kicker.cancelSlowKick()));
+        // RIGHT FERRY SHOT
         driver.povRight().whileTrue(autoAim.prepRightFerryShot());
         driver.povRight().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.RIGHT_FERRY)));
         driver.povRight().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
         driver.povRight().onTrue(hood.runOnce(() -> hood.setGoal(HoodState.FERRY)));
         driver.povRight().onFalse(hood.runOnce(() -> hood.setGoal(HoodState.TRENCH)));
 
-        // INDEX TO SHOOTER (overrides kick-until-resistance if you mash Y)
+        // INDEX TO SHOOTER
         driver.y().onTrue(kicker.runOnce(() -> kicker.setGoal(KickerState.KICK)));
         driver.y().onFalse(kicker.runOnce(() -> kicker.setGoal(KickerState.STOP)));
         driver.y().onTrue(indexer.runOnce(() -> indexer.setGoal(IndexerState.INDEX)));
@@ -181,28 +192,9 @@ public class RobotContainer {
         driver.y().onTrue(intake.runOnce(() -> intake.setGoal(IntakeState.AGITATE)));
         driver.y().onFalse(intake.runOnce(() -> intake.setGoal(IntakeState.STOP)));
 
-        // INTAKE behaviour: left trigger alone => intake + slowkick + slow outshoot.
-        // Left+Right together => intake only (no slowkick/no slowoutshoot).
-        driver.leftTrigger().onTrue(Commands.runOnce(() -> {
-            intake.setGoal(IntakeState.INTAKE);
-            if (driver.getRightTriggerAxis() > 0.2) {
-                // both triggers: intake only
-                kicker.cancelSlowKick();
-                shooter.setGoal(ShooterState.IDLE);
-            } else {
-                // left only: intake + slowkick + slow outshoot
-                kicker.setGoal(KickerState.SLOW_KICK);
-                shooter.setGoal(ShooterState.OUTSHOOT_SLOW);
-            }
-        }));
-        driver.leftTrigger().onFalse(Commands.runOnce(() -> {
-            intake.setGoal(IntakeState.STOP);
-            // releasing left trigger should release slow kick (begin reverse unwind)
-            kicker.releaseSlowKick();
-            shooter.setGoal(ShooterState.IDLE);
-        }));
-        driver.leftTrigger().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.OUTSHOOT)));
-        driver.leftTrigger().onFalse(shooter.runOnce(() -> shooter.setGoal(ShooterState.IDLE)));
+        // INTAKE
+        driver.leftTrigger().onTrue(intake.runOnce(() -> intake.setGoal(IntakeState.INTAKE)));
+        driver.leftTrigger().onFalse(intake.runOnce(() -> intake.setGoal(IntakeState.STOP)));
 
         // OUTTAKE
         driver.b().onTrue(shooter.runOnce(() -> shooter.setGoal(ShooterState.OUTSHOOT)));

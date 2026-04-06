@@ -23,20 +23,19 @@ public class IntakeConstants {
 
     public static final double kSensorToMechanismRatio = 75;
 
-    public static final double kRollerSpeed = -.6;
+    public static final double kRollerSpeed = -.35;
 
     public static final double kIntakeUpPosition = 0.0;
     public static final double kIntakeAgitateStartPos = 0.15;
     public static final double kIntakeAgitateEndPos = 0.05;
     public static final double kAgitateDecaySeconds = 5.5;
-    public static final double kIntakeDownPosition = 0.17; // 0.17 is the max down position
-    public static final double kIntakeOuttakePosition = 0.1;
+    public static final double kIntakeDownPosition = 0.181; // 0.181 is the max down position
+    public static final double kIntakeOuttakePosition = 0.15;
 
 
     public static final int kRollerMotorId = 15;
-    /** Follower roller; opposed to {@link #kRollerMotorId}. */
-    public static final int kRollerMotorFollowerId = 22;
-    public static final double kRollerSupplyCurrentLimit = 55;
+    public static final int kRollerMotorFollowerId = 16;
+    public static final double kRollerSupplyCurrentLimit = 40;
 
 
     public static double kIntakeAgitatePosition = .12;

@@ -65,19 +65,20 @@ public class ShooterConstants {
     private static final LoggedTunableNumber kshooter60 = new LoggedTunableNumber("Shooter/Hub/6.0", 60, true);
 
     public static InterpolatingDoubleTreeMap kShooterFerryMap = new InterpolatingDoubleTreeMap();
-
-    private static final LoggedTunableNumber kshooterFerry45 = new LoggedTunableNumber("Shooter/Ferry/4.5", 35.0, true);
+    // Ferry-map tunables (1m increments from 3m to 15m)
+    private static final LoggedTunableNumber kshooterFerry30 = new LoggedTunableNumber("Shooter/Ferry/3.0", 30.0, true);
+    private static final LoggedTunableNumber kshooterFerry40 = new LoggedTunableNumber("Shooter/Ferry/4.0", 34.0, true);
     private static final LoggedTunableNumber kshooterFerry50 = new LoggedTunableNumber("Shooter/Ferry/5.0", 38.8, true);
-    private static final LoggedTunableNumber kshooterFerry55 = new LoggedTunableNumber("Shooter/Ferry/5.5", 42.6, true);
     private static final LoggedTunableNumber kshooterFerry60 = new LoggedTunableNumber("Shooter/Ferry/6.0", 46.5, true);
-    private static final LoggedTunableNumber kshooterFerry65 = new LoggedTunableNumber("Shooter/Ferry/6.5", 50.3, true);
     private static final LoggedTunableNumber kshooterFerry70 = new LoggedTunableNumber("Shooter/Ferry/7.0", 54.1, true);
-    private static final LoggedTunableNumber kshooterFerry75 = new LoggedTunableNumber("Shooter/Ferry/7.5", 57.9, true);
     private static final LoggedTunableNumber kshooterFerry80 = new LoggedTunableNumber("Shooter/Ferry/8.0", 61.7, true);
-    private static final LoggedTunableNumber kshooterFerry85 = new LoggedTunableNumber("Shooter/Ferry/8.5", 65.5, true);
     private static final LoggedTunableNumber kshooterFerry90 = new LoggedTunableNumber("Shooter/Ferry/9.0", 69.4, true);
-    private static final LoggedTunableNumber kshooterFerry95 = new LoggedTunableNumber("Shooter/Ferry/9.5", 73.2, true);
-    private static final LoggedTunableNumber kshooterFerry100 = new LoggedTunableNumber("Shooter/Ferry/10.0", 87.0, true);
+    private static final LoggedTunableNumber kshooterFerry100 = new LoggedTunableNumber("Shooter/Ferry/10.0", 76.0, true);
+    private static final LoggedTunableNumber kshooterFerry110 = new LoggedTunableNumber("Shooter/Ferry/11.0", 80.0, true);
+    private static final LoggedTunableNumber kshooterFerry120 = new LoggedTunableNumber("Shooter/Ferry/12.0", 84.0, true);
+    private static final LoggedTunableNumber kshooterFerry130 = new LoggedTunableNumber("Shooter/Ferry/13.0", 88.0, true);
+    private static final LoggedTunableNumber kshooterFerry140 = new LoggedTunableNumber("Shooter/Ferry/14.0", 92.0, true);
+    private static final LoggedTunableNumber kshooterFerry150 = new LoggedTunableNumber("Shooter/Ferry/15.0", 96.0, true);
 
     public static double getShooterHubVelocity(double distance) {
         kShooterHubMap.put(1.5, kshooter15.get());
@@ -102,18 +103,19 @@ public class ShooterConstants {
     }
 
     public static double getShooterFerryVelocity(double distance) {
-        kShooterFerryMap.put(4.5, kshooterFerry45.get());
+        kShooterFerryMap.put(3.0, kshooterFerry30.get());
+        kShooterFerryMap.put(4.0, kshooterFerry40.get());
         kShooterFerryMap.put(5.0, kshooterFerry50.get());
-        kShooterFerryMap.put(5.5, kshooterFerry55.get());
         kShooterFerryMap.put(6.0, kshooterFerry60.get());
-        kShooterFerryMap.put(6.5, kshooterFerry65.get());
         kShooterFerryMap.put(7.0, kshooterFerry70.get());
-        kShooterFerryMap.put(7.5, kshooterFerry75.get());
         kShooterFerryMap.put(8.0, kshooterFerry80.get());
-        kShooterFerryMap.put(8.5, kshooterFerry85.get());
         kShooterFerryMap.put(9.0, kshooterFerry90.get());
-        kShooterFerryMap.put(9.5, kshooterFerry95.get());
         kShooterFerryMap.put(10.0, kshooterFerry100.get());
+        kShooterFerryMap.put(11.0, kshooterFerry110.get());
+        kShooterFerryMap.put(12.0, kshooterFerry120.get());
+        kShooterFerryMap.put(13.0, kshooterFerry130.get());
+        kShooterFerryMap.put(14.0, kshooterFerry140.get());
+        kShooterFerryMap.put(15.0, kshooterFerry150.get());
 
         return kShooterFerryMap.get(distance);
     }
