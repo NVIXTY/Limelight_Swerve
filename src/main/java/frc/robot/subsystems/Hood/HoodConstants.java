@@ -32,10 +32,10 @@ public class HoodConstants {
     public static InterpolatingDoubleTreeMap kHoodMap = new InterpolatingDoubleTreeMap();
 
     private static final LoggedTunableNumber kHood1 = new LoggedTunableNumber("Hood/Field/1.0", 0.0, true);
-    private static final LoggedTunableNumber kHood2 = new LoggedTunableNumber("Hood/Field/2.0", 0.035, true);
-    private static final LoggedTunableNumber kHood3 = new LoggedTunableNumber("Hood/Field/3.0", 0.045, true);
-    private static final LoggedTunableNumber kHood4 = new LoggedTunableNumber("Hood/Field/4.0", 0.06, true);
-    private static final LoggedTunableNumber kHood5 = new LoggedTunableNumber("Hood/Field/5.0", 0.065, true);
+    private static final LoggedTunableNumber kHood2 = new LoggedTunableNumber("Hood/Field/2.0", 0.025, true);
+    private static final LoggedTunableNumber kHood3 = new LoggedTunableNumber("Hood/Field/3.0", 0.035, true);
+    private static final LoggedTunableNumber kHood4 = new LoggedTunableNumber("Hood/Field/4.0", 0.045, true);
+    private static final LoggedTunableNumber kHood5 = new LoggedTunableNumber("Hood/Field/5.0", 0.055, true);
     private static final LoggedTunableNumber kHood6 = new LoggedTunableNumber("Hood/Field/6.0", kHubPosition, true);
 
     public static double getHoodPosition(double distance) {

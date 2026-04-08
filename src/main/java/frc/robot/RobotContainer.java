@@ -115,7 +115,8 @@ public class RobotContainer {
 
     private void configureNamedCommands() {
         // INTAKE
-        NamedCommands.registerCommand("Intake", intake.runOnce(()-> intake.setGoal(IntakeState.INTAKE)));
+        NamedCommands.registerCommand("Intake Fast", intake.runOnce(()-> intake.setGoal(IntakeState.INTAKEFAST)));
+        NamedCommands.registerCommand("Intake Slight Fast", intake.runOnce(()-> intake.setGoal(IntakeState.INTAKESLIGHTFAST)));
         NamedCommands.registerCommand("Stop Roller", intake.runOnce(()-> intake.setGoal(IntakeState.STOP)));
         NamedCommands.registerCommand("Agitate", intake.runOnce(()-> intake.setGoal(IntakeState.AGITATE)));
         NamedCommands.registerCommand("Stow", intake.runOnce(()-> intake.setGoal(IntakeState.STOW)));
@@ -132,20 +133,8 @@ public class RobotContainer {
         // KICKER
         NamedCommands.registerCommand("Kick", kicker.runOnce(() -> kicker.setGoal(KickerState.KICK)));
         NamedCommands.registerCommand("Stop Kick", kicker.runOnce(() -> kicker.setGoal(KickerState.STOP)));
-        // PP event can't require drive — stash align for after the path
-        NamedCommands.registerCommand("Align Hub", Commands.runOnce(() -> {
-            Supplier<Command> supplier = () -> autoAim.prepHubShot();
-            double pulse = SmartDashboard.getNumber("Align/TriggerSeconds", 0.25);
-            Command marker = Commands.sequence(
-                Commands.runOnce(() -> SmartDashboard.putBoolean("Align/EventActive", true)),
-                Commands.waitSeconds(pulse),
-                Commands.runOnce(() -> SmartDashboard.putBoolean("Align/EventActive", false))
-            );
-            try {
-                CommandScheduler.getInstance().schedule(marker);
-            } catch (Exception ignored) {}
-            m_postPathCommandSuppliers.add(supplier);
-        }));
+        // DRIVEBASE
+        NamedCommands.registerCommand("Align Hub", autoAim.prepHubShot().withTimeout(4));
     }
 
     private void configureBindings() {
@@ -223,8 +212,10 @@ public class RobotContainer {
             return null;
         }
         try {
+            // Ensure we run an alignment immediately after the selected auto finishes.
+            Command wrappedBase = Commands.sequence(base, autoAim.prepHubShot());
             return Commands.sequence(
-                base,
+                wrappedBase,
                 Commands.runOnce(() -> {
                     for (var supplier : m_postPathCommandSuppliers) {
                         Command cmd = supplier.get();

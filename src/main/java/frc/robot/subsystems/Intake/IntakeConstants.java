@@ -24,6 +24,8 @@ public class IntakeConstants {
     public static final double kSensorToMechanismRatio = 75;
 
     public static final double kRollerSpeed = -.35;
+    /** Multiplier applied to roller speed when using the fast intake state. */
+    public static final double kRollerFastMultiplier = 1.8;
 
     public static final double kIntakeUpPosition = 0.0;
     public static final double kIntakeAgitateStartPos = 0.15;

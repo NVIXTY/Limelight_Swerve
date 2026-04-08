@@ -7,19 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "2S1"
+            "pathName": "L2S1"
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 4.0
+            "name": "Align Hub"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "2S2"
+            "pathName": "L2S2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Align Hub"
           }
         }
       ]

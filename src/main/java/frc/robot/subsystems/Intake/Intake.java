@@ -89,6 +89,11 @@ public class Intake extends SubsystemBase {
         setPivotPosition(IntakeConstants.kIntakeDownPosition);
         rollerMotor.set(IntakeConstants.kRollerSpeed);
         break;
+      case INTAKEFAST:
+        setPivotPosition(IntakeConstants.kIntakeDownPosition);
+        // Apply configured fast multiplier (keep sign from kRollerSpeed)
+        rollerMotor.set(IntakeConstants.kRollerSpeed * IntakeConstants.kRollerFastMultiplier);
+        break;
       case OUTTAKE:
         setPivotPosition(IntakeConstants.kIntakeOuttakePosition);
         rollerMotor.set(-IntakeConstants.kRollerSpeed);

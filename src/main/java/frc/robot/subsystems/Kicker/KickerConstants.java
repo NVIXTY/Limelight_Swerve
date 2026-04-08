@@ -9,7 +9,7 @@ public class KickerConstants {
 
     public static final int kKickerSupplyCurrentLimit = 30;
 
-    public static final double kKickerInSpeed = 0.3;
+    public static final double kKickerInSpeed = 0.25;
     public static final double kKickerOutSpeed = -kKickerInSpeed;
 
     /** Slow-kick multiplier: slow kick = kKickerInSpeed * multiplier. Tune on robot. */
