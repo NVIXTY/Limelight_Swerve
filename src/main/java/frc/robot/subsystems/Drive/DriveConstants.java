@@ -70,11 +70,11 @@ public class DriveConstants {
     // Air time lookup table for SOTM compensation - maps distance (meters) to air time (seconds)
     // Tune these values based on your shooter's projectile speed
     private static final InterpolatingDoubleTreeMap kAirTimeMap = new InterpolatingDoubleTreeMap();
-    private static final LoggedTunableNumber kAirTime1m = new LoggedTunableNumber("Drive/SOTM/AirTime/1m", 1.2, true);
-    private static final LoggedTunableNumber kAirTime2m = new LoggedTunableNumber("Drive/SOTM/AirTime/2m", 1, true);
-    private static final LoggedTunableNumber kAirTime3m = new LoggedTunableNumber("Drive/SOTM/AirTime/3m", 1.15, true);
-    private static final LoggedTunableNumber kAirTime4m = new LoggedTunableNumber("Drive/SOTM/AirTime/4m", 1.2, true);
-    private static final LoggedTunableNumber kAirTime5m = new LoggedTunableNumber("Drive/SOTM/AirTime/5m", 1.25, true);
+    private static final LoggedTunableNumber kAirTime1m = new LoggedTunableNumber("Drive/SOTM/AirTime/1m", 1.1, true);
+    private static final LoggedTunableNumber kAirTime2m = new LoggedTunableNumber("Drive/SOTM/AirTime/2m", 1.1, true);
+    private static final LoggedTunableNumber kAirTime3m = new LoggedTunableNumber("Drive/SOTM/AirTime/3m", 1.1, true);
+    private static final LoggedTunableNumber kAirTime4m = new LoggedTunableNumber("Drive/SOTM/AirTime/4m", 1.3, true);
+    private static final LoggedTunableNumber kAirTime5m = new LoggedTunableNumber("Drive/SOTM/AirTime/5m", 1.4, true);
     private static final LoggedTunableNumber kAirTime6m = new LoggedTunableNumber("Drive/SOTM/AirTime/6m", 1.35, true);
 
     /**

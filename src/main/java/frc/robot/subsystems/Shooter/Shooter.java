@@ -74,7 +74,7 @@ public class Shooter extends SubsystemBase {
         shooterMotor2.setControl(new Follower(ShooterConstants.kShooterMotorId1, MotorAlignmentValue.Opposed));
         shooterMotor2.getConfigurator().apply(shooterConfig);
 
-        m_velocityRequest = new VelocityVoltage(0).withSlot(0);
+        m_velocityRequest = new VelocityVoltage(0).withSlot(0).withEnableFOC(true);
 
         SmartDashboard.putNumber("Shooter/RelookSeconds", kRelookDefault);
         m_nextRelookTime = Timer.getFPGATimestamp();

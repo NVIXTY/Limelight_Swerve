@@ -116,7 +116,6 @@ public class RobotContainer {
     private void configureNamedCommands() {
         // INTAKE
         NamedCommands.registerCommand("Intake Fast", intake.runOnce(()-> intake.setGoal(IntakeState.INTAKEFAST)));
-        NamedCommands.registerCommand("Intake Slight Fast", intake.runOnce(()-> intake.setGoal(IntakeState.INTAKESLIGHTFAST)));
         NamedCommands.registerCommand("Stop Roller", intake.runOnce(()-> intake.setGoal(IntakeState.STOP)));
         NamedCommands.registerCommand("Agitate", intake.runOnce(()-> intake.setGoal(IntakeState.AGITATE)));
         NamedCommands.registerCommand("Stow", intake.runOnce(()-> intake.setGoal(IntakeState.STOW)));

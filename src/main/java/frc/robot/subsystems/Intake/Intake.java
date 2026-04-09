@@ -14,6 +14,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -21,7 +22,6 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Shooter.ShooterConstants;
 
 public class Intake extends SubsystemBase {
   private TalonFX pivotMotor;
@@ -31,7 +31,11 @@ public class Intake extends SubsystemBase {
   private TalonFX rollerMotorFollower;
   private TalonFXConfiguration rollerConfig;
 
-  private MotionMagicVoltage m_motionRequest;
+  // Update roller motor to use MotionMagic with FOC enabled
+  private MotionMagicVoltage m_rollerMotionRequest;
+
+  // Update pivot motor to use MotionMagic without FOC enabled
+  private MotionMagicVoltage m_pivotMotionRequest;
 
   private IntakeState currentState = IntakeState.STOP;
   private double agitateStartTime = 0.0;
@@ -59,7 +63,10 @@ public class Intake extends SubsystemBase {
     
     pivotMotor.getConfigurator().apply(pivotConfig);
 
-    m_motionRequest = new MotionMagicVoltage(0).withSlot(0);
+
+    // Initialize the control types in the constructor
+    m_rollerMotionRequest = new MotionMagicVoltage(0).withSlot(0).withEnableFOC(true);
+    m_pivotMotionRequest = new MotionMagicVoltage(0).withSlot(0).withEnableFOC(false);
 
     pivotMotor.setPosition(0);
 
@@ -147,12 +154,21 @@ public class Intake extends SubsystemBase {
     pivotMotor.setPosition(0);
   }
 
-  public void setPivotPosition(double position) {
-    pivotMotor.setControl(m_motionRequest.withPosition(position));
+  // Update roller motor to use MotionMagic with FOC enabled
+  public void setRollerPosition(double position) {
+    rollerMotor.setControl(m_rollerMotionRequest.withPosition(position));
   }
 
- 
+  // Update pivot motor to use MotionMagic without FOC enabled
+  public void setPivotPosition(double position) {
+    pivotMotor.setControl(m_pivotMotionRequest.withPosition(position));
+  }
 
+  // Update roller motor to use VelocityVoltage
+  public void setRollerVelocity(double velocity) {
+    rollerMotor.set(IntakeConstants.kRollerSpeed);
+  }
+ 
   @Override
   public void periodic() {
     if (currentState == IntakeState.AGITATE) {
@@ -195,7 +211,7 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean isAtSetpoint() {
-    return Math.abs((pivotMotor.getPosition().getValueAsDouble()) - (m_motionRequest.Position)) <= IntakeConstants.kTolerance;
+    return Math.abs((pivotMotor.getPosition().getValueAsDouble()) - (m_pivotMotionRequest.Position)) <= IntakeConstants.kTolerance;
   }
 
   public void logMotorData() {
@@ -208,7 +224,7 @@ public class Intake extends SubsystemBase {
     Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorVoltage", pivotMotor.getMotorVoltage().getValueAsDouble());
 
     Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorPosition", pivotMotor.getPosition().getValueAsDouble());
-    Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorSetpoint", m_motionRequest.Position);
+    Logger.recordOutput("Subsystems/Intake/Basic/Pivot/PivotMotorSetpoint", m_pivotMotionRequest.Position);
     Logger.recordOutput("Subsystems/Intake/Basic/Pivot/IsAtSetpoint", isAtSetpoint());
 
     Logger.recordOutput("Subsystems/Intake/Basic/Roller/RollerMotorSpeed", rollerMotor.get());
